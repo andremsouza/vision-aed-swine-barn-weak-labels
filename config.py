@@ -11,6 +11,8 @@ import torch
 # %%
 # ANNOTATION_FILE = "/home/andre/30_09_2020.csv"
 ANNOTATION_FILE = "./30_09_2020_cropped.csv"
+TRAIN_ANNOTATION_FILE = "./train_annotation.csv"
+TEST_ANNOTATION_FILE = "./test_annotation.csv"
 
 ANNOTATION_SECONDS = 5
 
