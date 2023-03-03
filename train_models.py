@@ -7,7 +7,8 @@ and save the trained models.
 import datetime
 import warnings
 
-# import pandas as pd
+import pandas as pd
+from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import DataLoader
 
@@ -23,7 +24,38 @@ import utils
 # Load data
 device = torch.device(config.DEVICE)
 
-# %% [markdown]
+# Get length of dataset
+dataset_length = len(
+    data.AudioDataset(
+        config.ANNOTATION_FILE,
+        config.DATA_DIRECTORY,
+        transform=None,
+        target_transform=None,
+    )
+)
+# Use seed for selecting training and test data
+RANDOM_SEED = 42
+# Load annotation file
+# If train_annotation and test_annotation files do not exist, create them
+try:
+    train_annotation = pd.read_csv(config.TRAIN_ANNOTATION_FILE)
+    test_annotation = pd.read_csv(config.TEST_ANNOTATION_FILE)
+except FileNotFoundError:
+    # Create train and test annotation files with random sampling
+    annotation = pd.read_csv(config.ANNOTATION_FILE)
+    train_annotation, test_annotation = train_test_split(
+        annotation,
+        test_size=0.2,
+        random_state=RANDOM_SEED,
+    )
+    # Sort by Timestamp
+    train_annotation = train_annotation.sort_values(by="Timestamp")
+    test_annotation = test_annotation.sort_values(by="Timestamp")
+    # Save annotation files
+    train_annotation.to_csv(config.TRAIN_ANNOTATION_FILE, index=False)
+    test_annotation.to_csv(config.TEST_ANNOTATION_FILE, index=False)
+
+    # %% [markdown]
 # # Fully Connected Neural Network
 
 # %%
@@ -57,7 +89,7 @@ for n_layers in models.fully_connected.N_LAYERS:
 
 train_loader = DataLoader(
     data.AudioDataset(
-        config.ANNOTATION_FILE,
+        config.TRAIN_ANNOTATION_FILE,
         config.DATA_DIRECTORY,
         transform=lambda x: torch.flatten(x[None, :, :64]),
         target_transform=lambda x: x[0, :],
@@ -68,13 +100,13 @@ train_loader = DataLoader(
 )
 
 # %%
-# Train model
+# Train models
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for (n_layers, m_units, learning_rate), model in fc_models.items():
         print(
             f"{datetime.datetime.now()}: "
-            f"Training model w/ {n_layers} layers, {m_units} units, {learning_rate} learning rate"
+            f"Training FC model w/ {n_layers} layers, {m_units} units, {learning_rate} learning rate"
         )
         utils.train(
             model,
@@ -97,21 +129,31 @@ with warnings.catch_warnings():
         )
 
 # %%
+# TODO: Test model and select samples with highest entropy
 
 # %% [markdown]
 # # AlexNet
 
 # %%
-model = models.alexnet.AlexNet(num_classes=9, dropout=0.5).to(device)
-# Load state dict if it exists
-try:
-    model.load_state_dict(torch.load("models/alexnet.pt"))
-except FileNotFoundError:
-    pass
+# Create a model for each learning rate
+alexnet_models = {}
+
+for learning_rate in models.alexnet.LEARNING_RATES:
+    # Create model and load state dict if it exists
+    alexnet_models[learning_rate] = models.alexnet.AlexNet(
+        num_classes=9, dropout=0.5
+    ).to(device)
+    # Load state dict if it exists
+    try:
+        alexnet_models[learning_rate].load_state_dict(
+            torch.load(f"models/alexnet_{learning_rate}.pt")
+        )
+    except FileNotFoundError:
+        pass
 
 train_loader = DataLoader(
     data.AudioDataset(
-        config.ANNOTATION_FILE,
+        config.TRAIN_ANNOTATION_FILE,
         config.DATA_DIRECTORY,
         transform=lambda x: x[None, :, :64],
         target_transform=lambda x: x[0, :],
@@ -122,22 +164,33 @@ train_loader = DataLoader(
 )
 
 # %%
-# Train model
+# Train models
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    print(f"{datetime.datetime.now()}: Training AlexNet model")
-    utils.train(
-        model,
-        train_loader,
-        criterion=torch.nn.BCELoss(),
-        optimizer=torch.optim.Adam(model.parameters()),
-        device=device,
-        num_epochs=10,
-        n_classes=9,
-        verbose=True,
-    )
-# Save model state dict
-print(f"{datetime.datetime.now()}: Saving AlexNet model")
-torch.save(model.state_dict(), "models/alexnet.pt")
+    for learning_rate, model in alexnet_models.items():
+        print(
+            f"{datetime.datetime.now()}: "
+            f"Training AlexNet model w/ {learning_rate} learning rate"
+        )
+        utils.train(
+            model,
+            train_loader,
+            criterion=torch.nn.BCELoss(),
+            optimizer=torch.optim.Adam(model.parameters(), lr=learning_rate),
+            device=device,
+            num_epochs=10,
+            n_classes=9,
+            verbose=True,
+        )
+        # Save model state dict
+        print(
+            f"{datetime.datetime.now()}: "
+            f"Saving AlexNet model w/ {learning_rate} learning rate"
+        )
+        torch.save(
+            model.state_dict(),
+            f"models/alexnet_{learning_rate}.pt",
+        )
 
 # %%
+# TODO: Test model and select samples with highest entropy
