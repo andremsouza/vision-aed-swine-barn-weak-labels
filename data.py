@@ -4,12 +4,8 @@ Example:
     >>> from data import load_data
     >>> train_loader, test_loader = load_data(batch_size=32)
 
-TODO:
-    * Preprocess AudioDataset's __getitem__ method to
-        return a Nx96x64 tensor
-    * Method to feed data to models as 960ms samples
-        * Drop first, last, both, or random windows from each sample
 """
+# TODO: Adapt for active learning
 
 # %% [markdown]
 # # Imports
