@@ -96,7 +96,7 @@ train_loader = DataLoader(
         transform=lambda x: torch.flatten(x[None, :, :64]),
         target_transform=lambda x: x[0, :],
     ),
-    batch_size=24,
+    batch_size=config.BATCH_SIZE,
     shuffle=True,
     num_workers=24,
 )
@@ -169,7 +169,7 @@ train_loader = DataLoader(
         transform=lambda x: x[None, :, :64],
         target_transform=lambda x: x[0, :],
     ),
-    batch_size=24,
+    batch_size=config.BATCH_SIZE,
     shuffle=True,
     num_workers=24,
 )
