@@ -9,17 +9,17 @@ import torch
 # # Constants
 
 # %%
-# ANNOTATION_FILE = "/home/andre/30_09_2020.csv"
+# ANNOTATION_FILE = "/srv/andre/30_09_2020.csv"
 ANNOTATION_FILE = "./30_09_2020_cropped.csv"
 TRAIN_ANNOTATION_FILE = "./train_annotation.csv"
 TEST_ANNOTATION_FILE = "./test_annotation.csv"
 
 ANNOTATION_SECONDS = 5
 
-FEATURE_FILE = "/home/andre/features_2020-09-30.csv"
+FEATURE_FILE = "/srv/andre/features_2020-09-30.csv"
 CHUNK_SIZE = 10**3
 
-DATA_DIRECTORY = "/home/andre/gbdi_vm/fmvz/10_SWINE_ICMC/20201013/ALA_E/"
+DATA_DIRECTORY = "/srv/andre/gbdi_vm/fmvz/10_SWINE_ICMC/20201013/ALA_E/"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 BATCH_SIZE = 128
