@@ -117,7 +117,7 @@ with warnings.catch_warnings():
                 pass
         print(
             f"{datetime.datetime.now()}: "
-            f"Training FC model w/ {n_layers} layers, {m_units} units, {learning_rate} learning rate"
+            f"Training FC model w/ {n_layers} layers, {m_units} units, {learning_rate} lr"
         )
         utils.train(
             model,
@@ -132,7 +132,7 @@ with warnings.catch_warnings():
         # Save model state dict
         print(
             f"{datetime.datetime.now()}: "
-            f"Saving model w/ {n_layers} layers, {m_units} units, {learning_rate} learning rate"
+            f"Saving model w/ {n_layers} layers, {m_units} units, {learning_rate} lr"
         )
         torch.save(
             model.state_dict(),
