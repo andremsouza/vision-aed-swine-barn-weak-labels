@@ -17,6 +17,8 @@ import models
 import config
 import utils
 
+SKIP_TRAINED_MODELS = True
+
 # %% [markdown]
 # # Data
 
@@ -104,6 +106,15 @@ train_loader = DataLoader(
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for (n_layers, m_units, learning_rate), model in fc_models.items():
+        # If model parameters are already saved, skip training
+        if SKIP_TRAINED_MODELS:
+            try:
+                torch.load(
+                    f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
+                )
+                continue
+            except FileNotFoundError:
+                pass
         print(
             f"{datetime.datetime.now()}: "
             f"Training FC model w/ {n_layers} layers, {m_units} units, {learning_rate} learning rate"
@@ -168,6 +179,13 @@ train_loader = DataLoader(
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for learning_rate, model in alexnet_models.items():
+        # If model parameters are already saved, skip training
+        if SKIP_TRAINED_MODELS:
+            try:
+                torch.load(f"models/alexnet_{learning_rate}.pt")
+                continue
+            except FileNotFoundError:
+                pass
         print(
             f"{datetime.datetime.now()}: "
             f"Training AlexNet model w/ {learning_rate} learning rate"
