@@ -178,7 +178,7 @@ train_loader = DataLoader(
 # Train models
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    for learning_rate, model in alexnet_models.items():
+    for learning_rate, model in alexnet_models.items():  # type: ignore
         # If model parameters are already saved, skip training
         if SKIP_TRAINED_MODELS:
             try:
