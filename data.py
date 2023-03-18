@@ -131,8 +131,8 @@ class AudioDataset(torch.utils.data.Dataset):
             )
             # Try next item, check bounds
             if idx + 1 >= len(self):
-                return self.__getitem__(idx - 1)
-            return self.__getitem__(idx + 1)
+                return self.__getitem__(idx - np.random.randint(1, 5))
+            return self.__getitem__(idx + np.random.randint(1, min(5, len(self) - idx)))
         # Match annotation timestamp with audio file timestamp
         patch = match_patch_annotation(
             audio_file_features,
