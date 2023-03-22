@@ -85,7 +85,7 @@ for n_layers in models.fully_connected.N_LAYERS:
                         f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
                     )
                 )
-            except FileNotFoundError:
+            except (FileNotFoundError, EOFError):
                 pass
 
 
@@ -114,7 +114,14 @@ with warnings.catch_warnings():
                 )
                 continue
             except FileNotFoundError:
-                pass
+                # Touch file so it exists
+                open(
+                    f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
+                    "a",
+                    encoding="utf-8",
+                ).close()
+            except EOFError:
+                continue
         print(
             f"{datetime.datetime.now()}: "
             f"Training FC model w/ {n_layers} layers, {m_units} units, {learning_rate} lr"
@@ -159,7 +166,7 @@ for learning_rate in models.alexnet.LEARNING_RATES:
         alexnet_models[learning_rate].load_state_dict(
             torch.load(f"models/alexnet_{learning_rate}.pt")
         )
-    except FileNotFoundError:
+    except (FileNotFoundError, EOFError):
         pass
 
 train_loader = DataLoader(
@@ -185,7 +192,12 @@ with warnings.catch_warnings():
                 torch.load(f"models/alexnet_{learning_rate}.pt")
                 continue
             except FileNotFoundError:
-                pass
+                # Touch file so it exists
+                open(
+                    f"models/alexnet_{learning_rate}.pt", "a", encoding="utf-8"
+                ).close()
+            except EOFError:
+                continue
         print(
             f"{datetime.datetime.now()}: "
             f"Training AlexNet model w/ {learning_rate} learning rate"
