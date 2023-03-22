@@ -57,7 +57,9 @@ class AudioDataset(torch.utils.data.Dataset):
         self.audio_dir = audio_dir
         # Only .mp4 fiules
         self.audio_list = [
-            file for file in os.listdir(self.audio_dir) if file.endswith(".mp4")
+            file
+            for file in os.listdir(self.audio_dir)
+            if file.endswith(".mp4") or file.endswith(".wav")
         ]
         self.audio_file_data: list | pd.DataFrame = []
         for file in self.audio_list:
@@ -102,9 +104,16 @@ class AudioDataset(torch.utils.data.Dataset):
         else:
             raise TypeError("Timestamp type not recognized")
         # Get audio file
-        audio_file = self.audio_file_data.loc[
-            (self.audio_file_data["timestamp"] <= timestamp)
-        ].iloc[-1]["filename"]
+        try:
+            audio_file = self.audio_file_data.loc[
+                (self.audio_file_data["timestamp"] <= timestamp)
+            ].iloc[-1]["filename"]
+        except IndexError:
+            warnings.warn(f"Could not find audio file for {timestamp}.")
+            # Try next item, check bounds
+            if idx + 1 >= len(self):
+                return self.__getitem__(idx - np.random.randint(1, 5))
+            return self.__getitem__(idx + np.random.randint(1, min(5, len(self) - idx)))
         # Calculate offset in seconds
         offset: float = (
             timestamp
