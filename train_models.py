@@ -61,34 +61,7 @@ except FileNotFoundError:
 # # Fully Connected Neural Network
 
 # %%
-# Create a model for each number of layers and units, and learning rate
-fc_models = {}
-
-for n_layers in models.fully_connected.N_LAYERS:
-    for m_units in models.fully_connected.M_UNITS:
-        for learning_rate in models.fully_connected.LEARNING_RATES:
-            # Create model and load state dict if it exists
-            fc_models[
-                (n_layers, m_units, learning_rate)
-            ] = models.fully_connected.FullyConnected(
-                n_layers=n_layers,
-                m_units=m_units,
-                n_features=96 * 64,
-                m_labels=9,
-            ).to(
-                device
-            )
-            # Load state dict if it exists
-            try:
-                fc_models[(n_layers, m_units, learning_rate)].load_state_dict(
-                    torch.load(
-                        f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
-                    )
-                )
-            except (FileNotFoundError, EOFError):
-                pass
-
-
+# Create data loaders
 train_loader = DataLoader(
     data.AudioDataset(
         config.TRAIN_ANNOTATION_FILE,
@@ -100,51 +73,57 @@ train_loader = DataLoader(
     shuffle=True,
     num_workers=24,
 )
-
-# %%
 # Train models
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    for (n_layers, m_units, learning_rate), model in fc_models.items():
-        # If model parameters are already saved, skip training
-        if SKIP_TRAINED_MODELS:
-            try:
-                torch.load(
+    for n_layers in models.fully_connected.N_LAYERS:
+        for m_units in models.fully_connected.M_UNITS:
+            for learning_rate in models.fully_connected.LEARNING_RATES:
+                # Create model and load state dict if it exists
+                model = models.fully_connected.FullyConnected(
+                    n_layers=n_layers,
+                    m_units=m_units,
+                    n_features=96 * 64,
+                    m_labels=9,
+                ).to(device)
+                try:
+                    torch.load(
+                        f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
+                    )
+                    if SKIP_TRAINED_MODELS:
+                        continue
+                except FileNotFoundError:
+                    # Touch file so it exists
+                    open(
+                        f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
+                        "a",
+                        encoding="utf-8",
+                    ).close()
+                except EOFError:
+                    continue
+                print(
+                    f"{datetime.datetime.now()}: "
+                    f"Training FC model w/ {n_layers} layers, {m_units} units, {learning_rate} lr"
+                )
+                utils.train(
+                    model,
+                    train_loader,
+                    criterion=torch.nn.BCELoss(),
+                    optimizer=torch.optim.Adam(model.parameters(), lr=learning_rate),
+                    device=device,
+                    num_epochs=10,
+                    n_classes=9,
+                    verbose=True,
+                )
+                # Save model state dict
+                print(
+                    f"{datetime.datetime.now()}: "
+                    f"Saving model w/ {n_layers} layers, {m_units} units, {learning_rate} lr"
+                )
+                torch.save(
+                    model.state_dict(),
                     f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
                 )
-                continue
-            except FileNotFoundError:
-                # Touch file so it exists
-                open(
-                    f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
-                    "a",
-                    encoding="utf-8",
-                ).close()
-            except EOFError:
-                continue
-        print(
-            f"{datetime.datetime.now()}: "
-            f"Training FC model w/ {n_layers} layers, {m_units} units, {learning_rate} lr"
-        )
-        utils.train(
-            model,
-            train_loader,
-            criterion=torch.nn.BCELoss(),
-            optimizer=torch.optim.Adam(model.parameters(), lr=learning_rate),
-            device=device,
-            num_epochs=10,
-            n_classes=9,
-            verbose=True,
-        )
-        # Save model state dict
-        print(
-            f"{datetime.datetime.now()}: "
-            f"Saving model w/ {n_layers} layers, {m_units} units, {learning_rate} lr"
-        )
-        torch.save(
-            model.state_dict(),
-            f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
-        )
 
 # %%
 # TODO: Test model and select samples with highest entropy
@@ -153,22 +132,7 @@ with warnings.catch_warnings():
 # # AlexNet
 
 # %%
-# Create a model for each learning rate
-alexnet_models = {}
-
-for learning_rate in models.alexnet.LEARNING_RATES:
-    # Create model and load state dict if it exists
-    alexnet_models[learning_rate] = models.alexnet.AlexNet(
-        num_classes=9, dropout=0.5
-    ).to(device)
-    # Load state dict if it exists
-    try:
-        alexnet_models[learning_rate].load_state_dict(
-            torch.load(f"models/alexnet_{learning_rate}.pt")
-        )
-    except (FileNotFoundError, EOFError):
-        pass
-
+# Create data loaders
 train_loader = DataLoader(
     data.AudioDataset(
         config.TRAIN_ANNOTATION_FILE,
@@ -181,23 +145,22 @@ train_loader = DataLoader(
     num_workers=24,
 )
 
-# %%
 # Train models
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    for learning_rate, model in alexnet_models.items():  # type: ignore
-        # If model parameters are already saved, skip training
-        if SKIP_TRAINED_MODELS:
-            try:
-                torch.load(f"models/alexnet_{learning_rate}.pt")
+    for learning_rate in models.alexnet.LEARNING_RATES:
+        # Create model and load state dict if it exists
+        model = models.alexnet.AlexNet(num_classes=9, dropout=0.5).to(device)
+        # Load state dict if it exists
+        try:
+            model.load_state_dict(torch.load(f"models/alexnet_{learning_rate}.pt"))
+            if SKIP_TRAINED_MODELS:
                 continue
-            except FileNotFoundError:
-                # Touch file so it exists
-                open(
-                    f"models/alexnet_{learning_rate}.pt", "a", encoding="utf-8"
-                ).close()
-            except EOFError:
-                continue
+        except FileNotFoundError:
+            # Touch file so it exists
+            open(f"models/alexnet_{learning_rate}.pt", "a", encoding="utf-8").close()
+        except EOFError:
+            continue
         print(
             f"{datetime.datetime.now()}: "
             f"Training AlexNet model w/ {learning_rate} learning rate"
