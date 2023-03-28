@@ -69,7 +69,7 @@ def train(
                 # multiclass classification
                 # get probability for each class based on threshold
                 # if probability >= threshold, then class = 1, else class = 0
-                preds = (outputs >= config.PRED_THRESHOLD).float()
+                # preds = (outputs >= config.PRED_THRESHOLD).float()
                 # calculate loss with predictions and labels
                 loss = criterion(outputs, labels)
                 # backward + optimize
@@ -94,24 +94,66 @@ def train(
             y_true=result_labels.cpu().numpy().astype(int),
             y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
         )
-        epoch_f1 = sklearn.metrics.f1_score(
+        epoch_f1_macro = sklearn.metrics.f1_score(
             y_true=result_labels.cpu().numpy().astype(int),
             y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
-            # average="weighted",
+            average="macro",
             zero_division="warn",
         )
-        epoch_roc_auc = sklearn.metrics.roc_auc_score(
+        epoch_f1_micro = sklearn.metrics.f1_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average="micro",
+            zero_division="warn",
+        )
+        epoch_f1_weighted = sklearn.metrics.f1_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average="weighted",
+            zero_division="warn",
+        )
+        epoch_f1_none = sklearn.metrics.f1_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average=None,
+            zero_division="warn",
+        )
+        epoch_roc_auc_macro = sklearn.metrics.roc_auc_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_score=result_preds.cpu().numpy(),
+            average="macro",
+            multi_class="ovr",
+        )
+        epoch_roc_auc_micro = sklearn.metrics.roc_auc_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_score=result_preds.cpu().numpy(),
+            average="micro",
+            multi_class="ovr",
+        )
+        epoch_roc_auc_weighted = sklearn.metrics.roc_auc_score(
             y_true=result_labels.cpu().numpy().astype(int),
             y_score=result_preds.cpu().numpy(),
             average="weighted",
+            multi_class="ovr",
+        )
+        epoch_roc_auc_none = sklearn.metrics.roc_auc_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_score=result_preds.cpu().numpy(),
+            average=None,
             multi_class="ovr",
         )
         # Append epoch metrics
         metrics["loss"].append(epoch_loss)
         metrics["accuracy"].append(epoch_accuracy)
         metrics["hamming"].append(epoch_hamming)
-        metrics["f1-score"].append(epoch_f1)
-        metrics["roc_auc"].append(epoch_roc_auc)
+        metrics["f1-score_macro"].append(epoch_f1_macro)
+        metrics["f1-score_micro"].append(epoch_f1_micro)
+        metrics["f1-score_weighted"].append(epoch_f1_weighted)
+        metrics["f1-score_none"].append(epoch_f1_none)
+        metrics["roc_auc_macro"].append(epoch_roc_auc_macro)
+        metrics["roc_auc_micro"].append(epoch_roc_auc_micro)
+        metrics["roc_auc_weighted"].append(epoch_roc_auc_weighted)
+        metrics["roc_auc_none"].append(epoch_roc_auc_none)
         # Print epoch metrics
         if verbose:
             print(f"Epoch {epoch + 1}/{num_epochs}")
@@ -120,8 +162,16 @@ def train(
                 f"{epoch_loss:.4f} "
                 f"Accuracy: {epoch_accuracy:.4f} "
                 f"Hamming: {epoch_hamming:.4f} "
-                f"F1: {epoch_f1} "
-                f"ROC AUC: {epoch_roc_auc:.4f}"
+                f"\n"
+                f"F1 (macro): {epoch_f1_macro} "
+                f"F1 (micro): {epoch_f1_micro} "
+                f"F1 (weighted): {epoch_f1_weighted} "
+                f"F1 (none): {epoch_f1_none} "
+                f"\n"
+                f"ROC AUC (macro): {epoch_roc_auc_macro:.4f} "
+                f"ROC AUC (micro): {epoch_roc_auc_micro:.4f} "
+                f"ROC AUC (weighted): {epoch_roc_auc_weighted:.4f} "
+                f"ROC AUC (none): {epoch_roc_auc_none} "
             )
     return metrics
 
@@ -187,16 +237,52 @@ def test(
         y_true=result_labels.cpu().numpy().astype(int),
         y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
     )
-    epoch_f1 = sklearn.metrics.f1_score(
+    epoch_f1_macro = sklearn.metrics.f1_score(
         y_true=result_labels.cpu().numpy().astype(int),
         y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
-        # average="weighted",
+        average="macro",
         zero_division="warn",
     )
-    epoch_roc_auc = sklearn.metrics.roc_auc_score(
+    epoch_f1_micro = sklearn.metrics.f1_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average="micro",
+        zero_division="warn",
+    )
+    epoch_f1_weighted = sklearn.metrics.f1_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average="weighted",
+        zero_division="warn",
+    )
+    epoch_f1_none = sklearn.metrics.f1_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average=None,
+        zero_division="warn",
+    )
+    epoch_roc_auc_macro = sklearn.metrics.roc_auc_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_score=result_preds.cpu().numpy(),
+        average="macro",
+        multi_class="ovr",
+    )
+    epoch_roc_auc_micro = sklearn.metrics.roc_auc_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_score=result_preds.cpu().numpy(),
+        average="micro",
+        multi_class="ovr",
+    )
+    epoch_roc_auc_weighted = sklearn.metrics.roc_auc_score(
         y_true=result_labels.cpu().numpy().astype(int),
         y_score=result_preds.cpu().numpy(),
         average="weighted",
+        multi_class="ovr",
+    )
+    epoch_roc_auc_none = sklearn.metrics.roc_auc_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_score=result_preds.cpu().numpy(),
+        average=None,
         multi_class="ovr",
     )
 
@@ -205,16 +291,30 @@ def test(
             f"Test Loss: {epoch_loss:.4f} "
             f"Accuracy: {epoch_accuracy:.4f} "
             f"Hamming: {epoch_hamming:.4f} "
-            f"F1: {epoch_f1} "
-            f"ROC AUC: {epoch_roc_auc:.4f}"
+            f"\n"
+            f"F1 (macro): {epoch_f1_macro} "
+            f"F1 (micro): {epoch_f1_micro} "
+            f"F1 (weighted): {epoch_f1_weighted} "
+            f"F1 (none): {epoch_f1_none} "
+            f"\n"
+            f"ROC AUC (macro): {epoch_roc_auc_macro:.4f} "
+            f"ROC AUC (micro): {epoch_roc_auc_micro:.4f} "
+            f"ROC AUC (weighted): {epoch_roc_auc_weighted:.4f} "
+            f"ROC AUC (none): {epoch_roc_auc_none} "
         )
 
     return {
         "loss": epoch_loss,
         "accuracy": epoch_accuracy,
         "hamming_loss": epoch_hamming,
-        "f1-score": epoch_f1,
-        "roc_auc": epoch_roc_auc,
+        "f1-score_macro": epoch_f1_macro,
+        "f1-score_micro": epoch_f1_micro,
+        "f1-score_weighted": epoch_f1_weighted,
+        "f1-score_none": epoch_f1_none,
+        "roc_auc_macro": epoch_roc_auc_macro,
+        "roc_auc_micro": epoch_roc_auc_micro,
+        "roc_auc_weighted": epoch_roc_auc_weighted,
+        "roc_auc_none": epoch_roc_auc_none,
     }
 
 
