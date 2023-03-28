@@ -4,6 +4,7 @@
 # # Imports
 
 # %%
+import pickle as pkl
 import sys
 import warnings
 
@@ -94,5 +95,67 @@ with warnings.catch_warnings():
                     device=device,
                     verbose=True,
                 )
+
+# %% [markdown]
+# # AlexNet
+
+# %%
+# Create data loaders
+test_loader = DataLoader(
+    data.AudioDataset(
+        config.TEST_ANNOTATION_FILE,
+        config.DATA_DIRECTORY,
+        transform=lambda x: x[None, :, :64],
+        target_transform=lambda x: x[0, :],
+    ),
+    batch_size=config.BATCH_SIZE,
+    shuffle=True,
+    num_workers=24,
+)
+
+# Load model, for each learning rate
+alexnet_results = {}
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    for learning_rate in models.alexnet.LEARNING_RATES:
+        # Create model and load state dict if it exists
+        model = models.alexnet.AlexNet(
+            num_classes=9,
+            dropout=0.5,
+        ).to(device)
+        # Load state dict if it exists
+        try:
+            model.load_state_dict(
+                torch.load(
+                    f"models/alexnet_{learning_rate}.pt",
+                )
+            )
+        except (FileNotFoundError, EOFError):
+            # If model does not exist, skip
+            continue
+        # Evaluate model
+        print(f"Evaluating AlexNet model: {learning_rate}")
+        alexnet_results[learning_rate] = utils.test(
+            model,
+            test_loader,
+            criterion=torch.nn.BCELoss(),
+            device=device,
+            verbose=True,
+        )
+
+# %% [markdown]
+# # Save results
+
+# %%
+# Save results with pickle
+with open("results.pkl", "wb") as f:
+    pkl.dump(
+        {
+            "fc": fc_results,
+            "alexnet": alexnet_results,
+        },
+        f,
+    )
 
 # %%
