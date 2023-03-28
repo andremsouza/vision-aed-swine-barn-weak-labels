@@ -81,6 +81,7 @@ with warnings.catch_warnings():
                     model.load_state_dict(
                         torch.load(
                             f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
+                            map_location=device,
                         )
                     )
                 except (FileNotFoundError, EOFError):
@@ -127,9 +128,7 @@ with warnings.catch_warnings():
         # Load state dict if it exists
         try:
             model.load_state_dict(
-                torch.load(
-                    f"models/alexnet_{learning_rate}.pt",
-                )
+                torch.load(f"models/alexnet_{learning_rate}.pt", map_location=device)
             )
         except (FileNotFoundError, EOFError):
             # If model does not exist, skip
