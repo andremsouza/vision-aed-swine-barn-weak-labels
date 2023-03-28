@@ -150,7 +150,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for learning_rate in models.alexnet.LEARNING_RATES:
         # Create model and load state dict if it exists
-        model = models.alexnet.AlexNet(num_classes=9, dropout=0.5).to(device)
+        model = models.alexnet.AlexNet(num_classes=9, dropout=0.5).to(device) # type: ignore
         # Load state dict if it exists
         try:
             model.load_state_dict(torch.load(f"models/alexnet_{learning_rate}.pt"))
