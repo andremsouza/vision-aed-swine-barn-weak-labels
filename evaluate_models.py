@@ -120,7 +120,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for learning_rate in models.alexnet.LEARNING_RATES:
         # Create model and load state dict if it exists
-        model = models.alexnet.AlexNet(
+        model = models.alexnet.AlexNet(  # type: ignore
             num_classes=9,
             dropout=0.5,
         ).to(device)
