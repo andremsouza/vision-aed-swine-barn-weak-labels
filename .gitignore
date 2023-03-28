@@ -133,3 +133,9 @@ data/
 
 # VSCode
 .vscode/
+
+# models
+models/
+
+# output
+*.out
