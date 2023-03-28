@@ -81,23 +81,23 @@ def train(
             running_corrects += int(
                 torch.sum((outputs >= config.PRED_THRESHOLD).float() == labels.data)
             )
-            result_labels = torch.cat((result_labels, labels.cpu()), dim=0)
-            result_preds = torch.cat((result_preds, preds.cpu()), dim=0)
+            result_labels = torch.cat((result_labels, labels.detach().cpu()), dim=0)
+            result_preds = torch.cat((result_preds, outputs.detach().cpu()), dim=0)
             # running_corrects += int(torch.sum(preds == labels.data))
         # Calculate epoch metrics
         epoch_loss: float = running_loss / float(len(train_loader.dataset))  # type: ignore
         epoch_accuracy = sklearn.metrics.accuracy_score(
-            y_true=result_labels.cpu().numpy().astype(bool),
-            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(bool),
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
         )
         epoch_hamming = sklearn.metrics.hamming_loss(
             y_true=result_labels.cpu().numpy().astype(int),
             y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
         )
-        epoch_f1: float = sklearn.metrics.f1_score(
+        epoch_f1 = sklearn.metrics.f1_score(
             y_true=result_labels.cpu().numpy().astype(int),
             y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
-            average="weighted",
+            # average="weighted",
             zero_division="warn",
         )
         epoch_roc_auc = sklearn.metrics.roc_auc_score(
@@ -120,7 +120,7 @@ def train(
                 f"{epoch_loss:.4f} "
                 f"Accuracy: {epoch_accuracy:.4f} "
                 f"Hamming: {epoch_hamming:.4f} "
-                f"F1: {epoch_f1:.4f}"
+                f"F1: {epoch_f1} "
                 f"ROC AUC: {epoch_roc_auc:.4f}"
             )
     return metrics
@@ -175,22 +175,22 @@ def test(
         running_corrects += int(
             torch.sum((outputs >= config.PRED_THRESHOLD).float() == labels.data)
         )
-        result_labels = torch.cat((result_labels, labels.cpu()), dim=0)
-        result_preds = torch.cat((result_preds, preds.cpu()), dim=0)
+        result_labels = torch.cat((result_labels, labels.detach().cpu()), dim=0)
+        result_preds = torch.cat((result_preds, outputs.detach().cpu()), dim=0)
     # Calculate epoch metrics
     epoch_loss: float = running_loss / float(len(test_loader.dataset))  # type: ignore
     epoch_accuracy = sklearn.metrics.accuracy_score(
-        y_true=result_labels.cpu().numpy().astype(bool),
-        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(bool),
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
     )
     epoch_hamming = sklearn.metrics.hamming_loss(
         y_true=result_labels.cpu().numpy().astype(int),
         y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
     )
-    epoch_f1: float = sklearn.metrics.f1_score(
+    epoch_f1 = sklearn.metrics.f1_score(
         y_true=result_labels.cpu().numpy().astype(int),
         y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
-        average="weighted",
+        # average="weighted",
         zero_division="warn",
     )
     epoch_roc_auc = sklearn.metrics.roc_auc_score(
@@ -205,7 +205,7 @@ def test(
             f"Test Loss: {epoch_loss:.4f} "
             f"Accuracy: {epoch_accuracy:.4f} "
             f"Hamming: {epoch_hamming:.4f} "
-            f"F1: {epoch_f1:.4f}"
+            f"F1: {epoch_f1} "
             f"ROC AUC: {epoch_roc_auc:.4f}"
         )
 
