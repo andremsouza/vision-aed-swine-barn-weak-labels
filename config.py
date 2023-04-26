@@ -16,11 +16,11 @@ TEST_ANNOTATION_FILE = "./test_annotation.csv"
 
 ANNOTATION_SECONDS = 5
 
-FEATURE_FILE = "/srv/andre/features_2020-09-30.csv"
+FEATURE_FILE = "./features_2020-09-30.csv"
 CHUNK_SIZE = 10**3
 
 # DATA_DIRECTORY = "/srv/andre/gbdi_vm/fmvz/10_SWINE_ICMC/20201013/ALA_E/"
-DATA_DIRECTORY = "/srv/andre/aed/data/audio/"
+DATA_DIRECTORY = "./data/audio/"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 MODELS_DIRECTORY = "./models/"
