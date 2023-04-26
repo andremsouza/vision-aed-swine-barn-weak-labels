@@ -88,14 +88,14 @@ with warnings.catch_warnings():
                 ).to(device)
                 try:
                     torch.load(
-                        f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
+                        f"{config.MODELS_DIRECTORY}fc_{n_layers}_{m_units}_{learning_rate}.pt",
                     )
                     if SKIP_TRAINED_MODELS:
                         continue
                 except FileNotFoundError:
                     # Touch file so it exists
                     open(
-                        f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
+                        f"{config.MODELS_DIRECTORY}fc_{n_layers}_{m_units}_{learning_rate}.pt",
                         "a",
                         encoding="utf-8",
                     ).close()
@@ -122,7 +122,7 @@ with warnings.catch_warnings():
                 )
                 torch.save(
                     model.state_dict(),
-                    f"models/fc_{n_layers}_{m_units}_{learning_rate}.pt",
+                    f"{config.MODELS_DIRECTORY}fc_{n_layers}_{m_units}_{learning_rate}.pt",
                 )
 
 # %%
@@ -150,15 +150,21 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for learning_rate in models.alexnet.LEARNING_RATES:
         # Create model and load state dict if it exists
-        model = models.alexnet.AlexNet(num_classes=9, dropout=0.5).to(device) # type: ignore
+        model = models.alexnet.AlexNet(num_classes=9, dropout=0.5).to(device)  # type: ignore
         # Load state dict if it exists
         try:
-            model.load_state_dict(torch.load(f"models/alexnet_{learning_rate}.pt"))
+            model.load_state_dict(
+                torch.load(f"{config.MODELS_DIRECTORY}alexnet_{learning_rate}.pt")
+            )
             if SKIP_TRAINED_MODELS:
                 continue
         except FileNotFoundError:
             # Touch file so it exists
-            open(f"models/alexnet_{learning_rate}.pt", "a", encoding="utf-8").close()
+            open(
+                f"{config.MODELS_DIRECTORY}alexnet_{learning_rate}.pt",
+                "a",
+                encoding="utf-8",
+            ).close()
         except EOFError:
             continue
         print(
@@ -182,8 +188,203 @@ with warnings.catch_warnings():
         )
         torch.save(
             model.state_dict(),
-            f"models/alexnet_{learning_rate}.pt",
+            f"{config.MODELS_DIRECTORY}alexnet_{learning_rate}.pt",
         )
 
 # %%
 # TODO: Test model and select samples with highest entropy
+
+# %% [markdown]
+# # Inception_v3
+
+# %%
+# Create data loaders
+train_loader = DataLoader(
+    data.AudioDataset(
+        config.TRAIN_ANNOTATION_FILE,
+        config.DATA_DIRECTORY,
+        transform=lambda x: x[None, :, :64],
+        target_transform=lambda x: x[0, :],
+    ),
+    batch_size=config.BATCH_SIZE,
+    shuffle=True,
+    num_workers=24,
+)
+
+# Train models
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    for learning_rate in models.inception_v3.LEARNING_RATES:
+        # Create model and load state dict if it exists
+        model = models.inception_v3.InceptionV3(num_classes=9, dropout=0.5).to(device)  # type: ignore
+        # Load state dict if it exists
+        try:
+            model.load_state_dict(
+                torch.load(f"{config.MODELS_DIRECTORY}inception_v3_{learning_rate}.pt")
+            )
+            if SKIP_TRAINED_MODELS:
+                continue
+        except FileNotFoundError:
+            # Touch file so it exists
+            open(
+                f"{config.MODELS_DIRECTORY}inception_v3_{learning_rate}.pt",
+                "a",
+                encoding="utf-8",
+            ).close()
+        except EOFError:
+            continue
+        print(
+            f"{datetime.datetime.now()}: "
+            f"Training Inception_v3 model w/ {learning_rate} learning rate"
+        )
+        utils.train(
+            model,
+            train_loader,
+            criterion=torch.nn.BCELoss(),
+            optimizer=torch.optim.Adam(model.parameters(), lr=learning_rate),
+            device=device,
+            num_epochs=10,
+            n_classes=9,
+            verbose=True,
+        )
+        # Save model state dict
+        print(
+            f"{datetime.datetime.now()}: "
+            f"Saving Inception_v3 model w/ {learning_rate} learning rate"
+        )
+        torch.save(
+            model.state_dict(),
+            f"{config.MODELS_DIRECTORY}inception_v3_{learning_rate}.pt",
+        )
+
+# %%
+# TODO: Test model and select samples with highest entropy
+
+# %% [markdown]
+# # ResNet
+
+# %%
+# Create data loaders
+train_loader = DataLoader(
+    data.AudioDataset(
+        config.TRAIN_ANNOTATION_FILE,
+        config.DATA_DIRECTORY,
+        transform=lambda x: x[None, :, :64],
+        target_transform=lambda x: x[0, :],
+    ),
+    batch_size=config.BATCH_SIZE,
+    shuffle=True,
+    num_workers=24,
+)
+
+# Train models
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    for learning_rate in models.resnet50.LEARNING_RATES:
+        # Create model and load state dict if it exists
+        model = models.resnet50.ResNet50(num_classes=9, dropout=0.5).to(device)  # type: ignore
+        # Load state dict if it exists
+        try:
+            model.load_state_dict(
+                torch.load(f"{config.MODELS_DIRECTORY}resnet50_{learning_rate}.pt")
+            )
+            if SKIP_TRAINED_MODELS:
+                continue
+        except FileNotFoundError:
+            # Touch file so it exists
+            open(
+                f"{config.MODELS_DIRECTORY}resnet50_{learning_rate}.pt",
+                "a",
+                encoding="utf-8",
+            ).close()
+        except EOFError:
+            continue
+        print(
+            f"{datetime.datetime.now()}: "
+            f"Training ResNet50 model w/ {learning_rate} learning rate"
+        )
+        utils.train(
+            model,
+            train_loader,
+            criterion=torch.nn.BCELoss(),
+            optimizer=torch.optim.Adam(model.parameters(), lr=learning_rate),
+            device=device,
+            num_epochs=10,
+            n_classes=9,
+            verbose=True,
+        )
+        # Save model state dict
+        print(
+            f"{datetime.datetime.now()}: "
+            f"Saving ResNet50 model w/ {learning_rate} learning rate"
+        )
+        torch.save(
+            model.state_dict(),
+            f"{config.MODELS_DIRECTORY}resnet50_{learning_rate}.pt",
+        )
+
+# %%
+# TODO: Test model and select samples with highest entropy
+
+# %% [markdown]
+# # VGG
+
+# %%
+# Create data loaders
+train_loader = DataLoader(
+    data.AudioDataset(
+        config.TRAIN_ANNOTATION_FILE,
+        config.DATA_DIRECTORY,
+        transform=lambda x: x[None, :, :64],
+        target_transform=lambda x: x[0, :],
+    ),
+    batch_size=config.BATCH_SIZE,
+    shuffle=True,
+    num_workers=24,
+)
+
+# Train models
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    for learning_rate in models.vgg.LEARNING_RATES:
+        # Create model and load state dict if it exists
+        model = models.vgg.VGG(num_classes=9, dropout=0.5).to(device)  # type: ignore
+        # Load state dict if it exists
+        try:
+            model.load_state_dict(
+                torch.load(f"{config.MODELS_DIRECTORY}vgg_{learning_rate}.pt")
+            )
+            if SKIP_TRAINED_MODELS:
+                continue
+        except FileNotFoundError:
+            # Touch file so it exists
+            open(
+                f"{config.MODELS_DIRECTORY}vgg_{learning_rate}.pt",
+                "a",
+                encoding="utf-8",
+            ).close()
+        except EOFError:
+            continue
+        print(
+            f"{datetime.datetime.now()}: "
+            f"Training VGG model w/ {learning_rate} learning rate"
+        )
+        utils.train(
+            model,
+            train_loader,
+            criterion=torch.nn.BCELoss(),
+            optimizer=torch.optim.Adam(model.parameters(), lr=learning_rate),
+            device=device,
+            num_epochs=10,
+            n_classes=9,
+            verbose=True,
+        )
+        # Save model state dict
+        print(
+            f"{datetime.datetime.now()}: "
+            f"Saving VGG model w/ {learning_rate} learning rate"
+        )
+        torch.save(
+            model.state_dict(),
+            f"{config.MODELS_DIRECTORY}vgg_{learning_rate}.pt",
+        )

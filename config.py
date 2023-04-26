@@ -23,6 +23,8 @@ CHUNK_SIZE = 10**3
 DATA_DIRECTORY = "/srv/andre/aed/data/audio/"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
+MODELS_DIRECTORY = "./models/"
+
 BATCH_SIZE = 128
 N_MFCCS = 20
 

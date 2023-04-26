@@ -12,6 +12,12 @@ import torch.nn as nn
 import torchvision
 
 # %% [markdown]
+# # Constants
+
+# %%
+LEARNING_RATES = [0.001, 0.0001, 0.00001]
+
+# %% [markdown]
 # # Classes
 
 # %%
