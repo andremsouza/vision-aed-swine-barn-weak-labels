@@ -74,6 +74,7 @@ class InceptionV3(nn.Module):
         self.dropout = nn.Dropout(p=dropout)
         # Changed number of features from 2048 to 122880
         self.fc = nn.Linear(122880, num_classes)  # pylint: disable=invalid-name
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass of the Inception v3 model.
@@ -122,6 +123,7 @@ class InceptionV3(nn.Module):
         # N x 122880
         x = self.fc(x)
         # N x 1000 (num_classes)
+        x = self.sigmoid(x)
         return x
 
     def _transform_input(self, x: torch.Tensor) -> torch.Tensor:
