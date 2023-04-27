@@ -5,6 +5,7 @@ and save the trained models.
 """
 # %%
 import datetime
+import gc
 import warnings
 
 import pandas as pd
@@ -124,6 +125,12 @@ with warnings.catch_warnings():
                     model.state_dict(),
                     f"{config.MODELS_DIRECTORY}fc_{n_layers}_{m_units}_{learning_rate}.pt",
                 )
+                # free memory
+                del model
+                # garbage collect
+                gc.collect()
+                # free cuda memory
+                torch.cuda.empty_cache()
 
 # %%
 # TODO: Test model and select samples with highest entropy
@@ -190,6 +197,12 @@ with warnings.catch_warnings():
             model.state_dict(),
             f"{config.MODELS_DIRECTORY}alexnet_{learning_rate}.pt",
         )
+        # free memory
+        del model
+        # garbage collect
+        gc.collect()
+        # free cuda memory
+        torch.cuda.empty_cache()
 
 # %%
 # TODO: Test model and select samples with highest entropy
@@ -256,6 +269,12 @@ with warnings.catch_warnings():
             model.state_dict(),
             f"{config.MODELS_DIRECTORY}inception_v3_{learning_rate}.pt",
         )
+        # free memory
+        del model
+        # garbage collect
+        gc.collect()
+        # free cuda memory
+        torch.cuda.empty_cache()
 
 # %%
 # TODO: Test model and select samples with highest entropy
@@ -322,6 +341,12 @@ with warnings.catch_warnings():
             model.state_dict(),
             f"{config.MODELS_DIRECTORY}resnet50_{learning_rate}.pt",
         )
+        # free memory
+        del model
+        # garbage collect
+        gc.collect()
+        # free cuda memory
+        torch.cuda.empty_cache()
 
 # %%
 # TODO: Test model and select samples with highest entropy
@@ -388,3 +413,9 @@ with warnings.catch_warnings():
             model.state_dict(),
             f"{config.MODELS_DIRECTORY}vgg_{learning_rate}.pt",
         )
+        # free memory
+        del model
+        # garbage collect
+        gc.collect()
+        # free cuda memory
+        torch.cuda.empty_cache()
