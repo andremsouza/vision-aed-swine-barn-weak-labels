@@ -51,7 +51,9 @@ class AudioDataset(torch.utils.data.Dataset):
         """
         if isinstance(annotations_file, str):
             self.annotations = pd.read_csv(annotations_file, index_col=0)
-            self.annotations.index = pd.to_datetime(self.annotations.index)
+            self.annotations.index = pd.to_datetime(
+                self.annotations.index, dayfirst=True
+            )
         else:
             self.annotations = annotations_file
         self.audio_dir = audio_dir
