@@ -43,8 +43,14 @@ def train(
         "loss": [],
         "accuracy": [],
         "hamming": [],
-        "f1-score": [],
-        "roc_auc": [],
+        "f1-score_macro": [],
+        "f1-score_micro": [],
+        "f1-score_weighted": [],
+        "f1-score_none": [],
+        "roc_auc_macro": [],
+        "roc_auc_micro": [],
+        "roc_auc_weighted": [],
+        "roc_auc_none": [],
     }
     # loop over epochs
     for epoch in range(num_epochs):
