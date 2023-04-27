@@ -43,6 +43,14 @@ def train(
         "loss": [],
         "accuracy": [],
         "hamming": [],
+        "precision_macro": [],
+        "precision_micro": [],
+        "precision_weighted": [],
+        "precision_none": [],
+        "recall_macro": [],
+        "recall_micro": [],
+        "recall_weighted": [],
+        "recall_none": [],
         "f1-score_macro": [],
         "f1-score_micro": [],
         "f1-score_weighted": [],
@@ -100,6 +108,54 @@ def train(
             y_true=result_labels.cpu().numpy().astype(int),
             y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
         )
+        epoch_precision_macro = sklearn.metrics.precision_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average="macro",
+            zero_division="warn",
+        )
+        epoch_precision_micro = sklearn.metrics.precision_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average="micro",
+            zero_division="warn",
+        )
+        epoch_precision_weighted = sklearn.metrics.precision_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average="weighted",
+            zero_division="warn",
+        )
+        epoch_precision_none = sklearn.metrics.precision_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average=None,
+            zero_division="warn",
+        )
+        epoch_recall_macro = sklearn.metrics.recall_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average="macro",
+            zero_division="warn",
+        )
+        epoch_recall_micro = sklearn.metrics.recall_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average="micro",
+            zero_division="warn",
+        )
+        epoch_recall_weighted = sklearn.metrics.recall_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average="weighted",
+            zero_division="warn",
+        )
+        epoch_recall_none = sklearn.metrics.recall_score(
+            y_true=result_labels.cpu().numpy().astype(int),
+            y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+            average=None,
+            zero_division="warn",
+        )
         epoch_f1_macro = sklearn.metrics.f1_score(
             y_true=result_labels.cpu().numpy().astype(int),
             y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
@@ -152,6 +208,14 @@ def train(
         metrics["loss"].append(epoch_loss)
         metrics["accuracy"].append(epoch_accuracy)
         metrics["hamming"].append(epoch_hamming)
+        metrics["precision_macro"].append(epoch_precision_macro)
+        metrics["precision_micro"].append(epoch_precision_micro)
+        metrics["precision_weighted"].append(epoch_precision_weighted)
+        metrics["precision_none"].append(epoch_precision_none)
+        metrics["recall_macro"].append(epoch_recall_macro)
+        metrics["recall_micro"].append(epoch_recall_micro)
+        metrics["recall_weighted"].append(epoch_recall_weighted)
+        metrics["recall_none"].append(epoch_recall_none)
         metrics["f1-score_macro"].append(epoch_f1_macro)
         metrics["f1-score_micro"].append(epoch_f1_micro)
         metrics["f1-score_weighted"].append(epoch_f1_weighted)
@@ -168,6 +232,16 @@ def train(
                 f"{epoch_loss:.4f} "
                 f"Accuracy: {epoch_accuracy:.4f} "
                 f"Hamming: {epoch_hamming:.4f} "
+                f"\n"
+                f"Precision (macro): {epoch_precision_macro:.4f} "
+                f"Precision (micro): {epoch_precision_micro:.4f} "
+                f"Precision (weighted): {epoch_precision_weighted:.4f} "
+                f"Precision (none): {epoch_precision_none} "
+                f"\n"
+                f"Recall (macro): {epoch_recall_macro:.4f} "
+                f"Recall (micro): {epoch_recall_micro:.4f} "
+                f"Recall (weighted): {epoch_recall_weighted:.4f} "
+                f"Recall (none): {epoch_recall_none} "
                 f"\n"
                 f"F1 (macro): {epoch_f1_macro} "
                 f"F1 (micro): {epoch_f1_micro} "
@@ -243,6 +317,54 @@ def test(
         y_true=result_labels.cpu().numpy().astype(int),
         y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
     )
+    epoch_precision_macro = sklearn.metrics.precision_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average="macro",
+        zero_division="warn",
+    )
+    epoch_precision_micro = sklearn.metrics.precision_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average="micro",
+        zero_division="warn",
+    )
+    epoch_precision_weighted = sklearn.metrics.precision_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average="weighted",
+        zero_division="warn",
+    )
+    epoch_precision_none = sklearn.metrics.precision_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average=None,
+        zero_division="warn",
+    )
+    epoch_recall_macro = sklearn.metrics.recall_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average="macro",
+        zero_division="warn",
+    )
+    epoch_recall_micro = sklearn.metrics.recall_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average="micro",
+        zero_division="warn",
+    )
+    epoch_recall_weighted = sklearn.metrics.recall_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average="weighted",
+        zero_division="warn",
+    )
+    epoch_recall_none = sklearn.metrics.recall_score(
+        y_true=result_labels.cpu().numpy().astype(int),
+        y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
+        average=None,
+        zero_division="warn",
+    )
     epoch_f1_macro = sklearn.metrics.f1_score(
         y_true=result_labels.cpu().numpy().astype(int),
         y_pred=(result_preds.cpu().numpy() >= config.PRED_THRESHOLD).astype(int),
@@ -298,6 +420,16 @@ def test(
             f"Accuracy: {epoch_accuracy:.4f} "
             f"Hamming: {epoch_hamming:.4f} "
             f"\n"
+            f"Precision (macro): {epoch_precision_macro} "
+            f"Precision (micro): {epoch_precision_micro} "
+            f"Precision (weighted): {epoch_precision_weighted} "
+            f"Precision (none): {epoch_precision_none} "
+            f"\n"
+            f"Recall (macro): {epoch_recall_macro} "
+            f"Recall (micro): {epoch_recall_micro} "
+            f"Recall (weighted): {epoch_recall_weighted} "
+            f"Recall (none): {epoch_recall_none} "
+            f"\n"
             f"F1 (macro): {epoch_f1_macro} "
             f"F1 (micro): {epoch_f1_micro} "
             f"F1 (weighted): {epoch_f1_weighted} "
@@ -313,6 +445,14 @@ def test(
         "loss": epoch_loss,
         "accuracy": epoch_accuracy,
         "hamming_loss": epoch_hamming,
+        "precision_macro": epoch_precision_macro,
+        "precision_micro": epoch_precision_micro,
+        "precision_weighted": epoch_precision_weighted,
+        "precision_none": epoch_precision_none,
+        "recall_macro": epoch_recall_macro,
+        "recall_micro": epoch_recall_micro,
+        "recall_weighted": epoch_recall_weighted,
+        "recall_none": epoch_recall_none,
         "f1-score_macro": epoch_f1_macro,
         "f1-score_micro": epoch_f1_micro,
         "f1-score_weighted": epoch_f1_weighted,
