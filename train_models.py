@@ -57,7 +57,7 @@ except FileNotFoundError:
     train_annotation.to_csv(config.TRAIN_ANNOTATION_FILE, index=False)
     test_annotation.to_csv(config.TEST_ANNOTATION_FILE, index=False)
 
-    # %% [markdown]
+# %% [markdown]
 # # Fully Connected Neural Network
 
 # %%
