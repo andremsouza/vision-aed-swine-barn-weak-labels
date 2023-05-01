@@ -144,6 +144,147 @@ with warnings.catch_warnings():
         )
 
 # %% [markdown]
+# # Inception_v3
+
+# %%
+# Create data loaders
+test_loader = DataLoader(
+    data.AudioDataset(
+        config.TEST_ANNOTATION_FILE,
+        config.DATA_DIRECTORY,
+        transform=lambda x: x[None, :, :64],
+        target_transform=lambda x: x[0, :],
+    ),
+    batch_size=config.BATCH_SIZE,
+    shuffle=True,
+    num_workers=24,
+)
+
+# Load model, for each learning rate
+inception_v3_results = {}
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    for learning_rate in models.inception_v3.LEARNING_RATES:
+        # Create model and load state dict if it exists
+        model = models.inception_v3.InceptionV3(  # type: ignore
+            num_classes=9,
+            dropout=0.5,
+        ).to(device)
+        # Load state dict if it exists
+        try:
+            model.load_state_dict(
+                torch.load(
+                    f"models/inception_v3_{learning_rate}.pt", map_location=device
+                )
+            )
+        except (FileNotFoundError, EOFError):
+            # If model does not exist, skip
+            continue
+        # Evaluate model
+        print(f"Evaluating Inception_v3 model: {learning_rate}")
+        inception_v3_results[learning_rate] = utils.test(
+            model,
+            test_loader,
+            criterion=torch.nn.BCELoss(),
+            device=device,
+            verbose=True,
+        )
+
+# %% [markdown]
+# # ResNet
+
+# %%
+# Create data loaders
+test_loader = DataLoader(
+    data.AudioDataset(
+        config.TEST_ANNOTATION_FILE,
+        config.DATA_DIRECTORY,
+        transform=lambda x: x[None, :, :64],
+        target_transform=lambda x: x[0, :],
+    ),
+    batch_size=config.BATCH_SIZE,
+    shuffle=True,
+    num_workers=24,
+)
+
+# Load model, for each learning rate
+resnet50_results = {}
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    for learning_rate in models.resnet50.LEARNING_RATES:
+        # Create model and load state dict if it exists
+        model = models.resnet50.ResNet50(  # type: ignore
+            num_classes=9,
+            dropout=0.5,
+        ).to(device)
+        # Load state dict if it exists
+        try:
+            model.load_state_dict(
+                torch.load(f"models/resnet50_{learning_rate}.pt", map_location=device)
+            )
+        except (FileNotFoundError, EOFError):
+            # If model does not exist, skip
+            continue
+        # Evaluate model
+        print(f"Evaluating ResNet50 model: {learning_rate}")
+        resnet50_results[learning_rate] = utils.test(
+            model,
+            test_loader,
+            criterion=torch.nn.BCELoss(),
+            device=device,
+            verbose=True,
+        )
+
+# %% [markdown]
+# # VGG
+
+# %%
+# Create data loaders
+test_loader = DataLoader(
+    data.AudioDataset(
+        config.TEST_ANNOTATION_FILE,
+        config.DATA_DIRECTORY,
+        transform=lambda x: x[None, :, :64],
+        target_transform=lambda x: x[0, :],
+    ),
+    batch_size=config.BATCH_SIZE,
+    shuffle=True,
+    num_workers=24,
+)
+
+# Load model, for each learning rate
+vgg_results = {}
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    for learning_rate in models.vgg.LEARNING_RATES:
+        # Create model and load state dict if it exists
+        model = models.vgg.VGG(  # type: ignore
+            num_classes=9,
+            dropout=0.5,
+        ).to(device)
+        # Load state dict if it exists
+        try:
+            model.load_state_dict(
+                torch.load(f"models/vgg_{learning_rate}.pt", map_location=device)
+            )
+        except (FileNotFoundError, EOFError):
+            # If model does not exist, skip
+            continue
+        # Evaluate model
+        print(f"Evaluating VGG model: {learning_rate}")
+        vgg_results[learning_rate] = utils.test(
+            model,
+            test_loader,
+            criterion=torch.nn.BCELoss(),
+            device=device,
+            verbose=True,
+        )
+
+
+# %% [markdown]
 # # Save results
 
 # %%
@@ -153,6 +294,9 @@ with open("results.pkl", "wb") as f:
         {
             "fc": fc_results,
             "alexnet": alexnet_results,
+            "inception_v3": inception_v3_results,
+            "resnet50": resnet50_results,
+            "vgg": vgg_results,
         },
         f,
     )
