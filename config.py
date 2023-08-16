@@ -30,6 +30,11 @@ N_MFCCS = 20
 
 PRED_THRESHOLD = 0.5
 
+RANDOM_SEED = 42
+
+SKIP_TRAINED_MODELS = True
+FC_BEST_MODELS_ONLY = True
+
 # %% [markdown]
 # # VGGIsh Parameters
 

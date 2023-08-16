@@ -18,8 +18,6 @@ import models
 import config
 import utils
 
-SKIP_TRAINED_MODELS = True
-
 # %% [markdown]
 # # Data
 
@@ -37,7 +35,6 @@ dataset_length = len(
     )
 )
 # Use seed for selecting training and test data
-RANDOM_SEED = 42
 # Load annotation file
 # If train_annotation and test_annotation files do not exist, create them
 try:
@@ -46,10 +43,20 @@ try:
 except FileNotFoundError:
     # Create train and test annotation files with random sampling
     annotation = pd.read_csv(config.ANNOTATION_FILE)
+    # # Merge stress and disputes
+    # annotation["Estresse"] = annotation["Estresse"] | annotation["Disputas"]
+    # # Drop disputes
+    # annotation = annotation.drop(columns=["Disputas"])
+    # # Merge cough and sneeze
+    # annotation["Tosse"] = annotation["Tosse"] | annotation["Espirro"]
+    # # Drop sneeze
+    # annotation = annotation.drop(columns=["Espirro"])
+    # # rename cough to cough_sneeze
+    # annotation = annotation.rename(columns={"Tosse": "Tosse_Espirro"})
     train_annotation, test_annotation = train_test_split(
         annotation,
         test_size=0.2,
-        random_state=RANDOM_SEED,
+        random_state=config.RANDOM_SEED,
     )
     # Sort by Timestamp
     train_annotation = train_annotation.sort_values(by="Timestamp")
@@ -80,6 +87,20 @@ with warnings.catch_warnings():
     for n_layers in models.fully_connected.N_LAYERS:
         for m_units in models.fully_connected.M_UNITS:
             for learning_rate in models.fully_connected.LEARNING_RATES:
+                # # Only train specific models
+                # if config.FC_BEST_MODELS_ONLY and (
+                #     n_layers,
+                #     m_units,
+                #     learning_rate,
+                # ) not in [
+                #     (3, 4000, 1e-5),
+                #     (3, 3000, 1e-5),
+                #     (3, 2000, 1e-5),
+                #     (4, 3000, 1e-5),
+                #     (2, 4000, 1e-4),
+                #     (3, 1000, 1e-5),
+                # ]:
+                #     continue
                 # Create model and load state dict if it exists
                 model = models.fully_connected.FullyConnected(
                     n_layers=n_layers,
@@ -91,7 +112,7 @@ with warnings.catch_warnings():
                     torch.load(
                         f"{config.MODELS_DIRECTORY}fc_{n_layers}_{m_units}_{learning_rate}.pt",
                     )
-                    if SKIP_TRAINED_MODELS:
+                    if config.SKIP_TRAINED_MODELS:
                         continue
                 except FileNotFoundError:
                     # Touch file so it exists
@@ -157,13 +178,16 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for learning_rate in models.alexnet.LEARNING_RATES:
         # Create model and load state dict if it exists
-        model = models.alexnet.AlexNet(num_classes=9, dropout=0.5).to(device)  # type: ignore
+        model = models.alexnet.AlexNet(  # type: ignore
+            num_classes=9,
+            dropout=0.5,
+        ).to(device)
         # Load state dict if it exists
         try:
             model.load_state_dict(
                 torch.load(f"{config.MODELS_DIRECTORY}alexnet_{learning_rate}.pt")
             )
-            if SKIP_TRAINED_MODELS:
+            if config.SKIP_TRAINED_MODELS:
                 continue
         except FileNotFoundError:
             # Touch file so it exists
@@ -229,13 +253,16 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for learning_rate in models.inception_v3.LEARNING_RATES:
         # Create model and load state dict if it exists
-        model = models.inception_v3.InceptionV3(num_classes=9, dropout=0.5).to(device)  # type: ignore
+        model = models.inception_v3.InceptionV3(  # type: ignore
+            num_classes=9,
+            dropout=0.5,
+        ).to(device)
         # Load state dict if it exists
         try:
             model.load_state_dict(
                 torch.load(f"{config.MODELS_DIRECTORY}inception_v3_{learning_rate}.pt")
             )
-            if SKIP_TRAINED_MODELS:
+            if config.SKIP_TRAINED_MODELS:
                 continue
         except FileNotFoundError:
             # Touch file so it exists
@@ -307,7 +334,7 @@ with warnings.catch_warnings():
             model.load_state_dict(
                 torch.load(f"{config.MODELS_DIRECTORY}resnet50_{learning_rate}.pt")
             )
-            if SKIP_TRAINED_MODELS:
+            if config.SKIP_TRAINED_MODELS:
                 continue
         except FileNotFoundError:
             # Touch file so it exists
@@ -379,7 +406,7 @@ with warnings.catch_warnings():
             model.load_state_dict(
                 torch.load(f"{config.MODELS_DIRECTORY}vgg_{learning_rate}.pt")
             )
-            if SKIP_TRAINED_MODELS:
+            if config.SKIP_TRAINED_MODELS:
                 continue
         except FileNotFoundError:
             # Touch file so it exists
