@@ -135,7 +135,7 @@ data/
 .vscode/
 
 # models
-models/
+models*/
 
 # output
 *.out
