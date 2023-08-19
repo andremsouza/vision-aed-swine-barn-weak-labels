@@ -12,7 +12,10 @@ import torch
 # ANNOTATION_FILE = "/srv/andre/30_09_2020.csv"
 ANNOTATION_FILE = "./30_09_2020_cropped.csv"
 TRAIN_ANNOTATION_FILE = "./train_annotation.csv"
+VAL_ANNOTATION_FILE = "./val_annotation.csv"
 TEST_ANNOTATION_FILE = "./test_annotation.csv"
+
+NUM_CLASSES: int = 9
 
 ANNOTATION_SECONDS = 5
 
@@ -34,6 +37,8 @@ RANDOM_SEED = 42
 
 SKIP_TRAINED_MODELS = True
 FC_BEST_MODELS_ONLY = True
+
+LOG_DIRECTORY = "./logs/"
 
 # %% [markdown]
 # # VGGIsh Parameters
