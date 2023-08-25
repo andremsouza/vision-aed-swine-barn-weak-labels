@@ -28,7 +28,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 MODELS_DIRECTORY = "./models/"
 
-BATCH_SIZE = 128
+BATCH_SIZE = 256
 N_MFCCS = 20
 
 PRED_THRESHOLD = 0.5
@@ -39,6 +39,11 @@ SKIP_TRAINED_MODELS = True
 FC_BEST_MODELS_ONLY = True
 
 LOG_DIRECTORY = "./logs/"
+
+EARLY_STOPPING_PATIENCE = 20
+
+NUM_WORKERS = 24
+
 
 # %% [markdown]
 # # VGGIsh Parameters
