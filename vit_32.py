@@ -398,8 +398,12 @@ if __name__ == "__main__":
     checkpoint_file: str | None = None
     for file in os.listdir(config.MODELS_DIRECTORY):
         if file.startswith(EXPERIMENT_NAME) and file.endswith(".ckpt"):
-            checkpoint_file = os.path.join(config.MODELS_DIRECTORY, file)
-            break
+            # Checkpoint file found
+            # get file with highest val_auroc
+            if checkpoint_file is None:
+                checkpoint_file = file
+            elif file > checkpoint_file:
+                checkpoint_file = file
     if checkpoint_file is not None:
         model = ViT32.load_from_checkpoint(
             checkpoint_file, num_classes=config.NUM_CLASSES, dropout=0.5
@@ -444,7 +448,7 @@ if __name__ == "__main__":
     ]
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=config.MODELS_DIRECTORY,
-        filename=EXPERIMENT_NAME + "-{epoch:02d}-{val_loss:.2f}-{val_auroc:.2f}",
+        filename=EXPERIMENT_NAME + "-{val_auroc:.2f}-{val_loss:.2f}-{epoch:02d}",
         monitor="val_auroc",
         verbose=True,
         save_top_k=1,
