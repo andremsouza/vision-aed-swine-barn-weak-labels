@@ -406,6 +406,8 @@ if __name__ == "__main__":
             elif file > checkpoint_file:
                 checkpoint_file = file
     if checkpoint_file is not None:
+        # prepend models directory
+        checkpoint_file = os.path.join(config.MODELS_DIRECTORY, checkpoint_file)
         model = ViT32.load_from_checkpoint(
             checkpoint_file, num_classes=config.NUM_CLASSES, dropout=0.5
         )
