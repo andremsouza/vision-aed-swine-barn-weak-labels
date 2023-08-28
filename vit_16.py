@@ -257,7 +257,8 @@ class ViT16(pl.LightningModule):
         self.log("train_precision", self.train_precision, on_step=False, on_epoch=True)
         self.log("train_recall", self.train_recall, on_step=False, on_epoch=True)
         # self.log("train_roc", self.train_roc, on_step=False, on_epoch=True)
-        # return loss
+        # log learning rate
+        self.log("lr", self.trainer.optimizers[0].param_groups[0]["lr"])
         return loss
 
     def validation_step(
@@ -359,7 +360,7 @@ class ViT16(pl.LightningModule):
         )
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
-            mode="max",
+            mode="min",
             factor=0.1,
             patience=config.EARLY_STOPPING_PATIENCE // 2,
             threshold=0.0001,
@@ -370,7 +371,7 @@ class ViT16(pl.LightningModule):
             verbose=True,
         )
         return [optimizer], [
-            {"scheduler": scheduler, "interval": "epoch", "monitor": "val_loss"}
+            {"scheduler": scheduler, "interval": "epoch", "monitor": "train_loss"}
         ]
 
 
