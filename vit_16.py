@@ -443,7 +443,7 @@ if __name__ == "__main__":
         num_workers=config.NUM_WORKERS,
     )
     early_stopping = pl.callbacks.EarlyStopping(
-        monitor="val_loss", patience=config.EARLY_STOPPING_PATIENCE
+        monitor="train_loss", patience=config.EARLY_STOPPING_PATIENCE, mode="min"
     )
     loggers = [
         pl.loggers.CSVLogger(config.LOG_DIRECTORY, name=EXPERIMENT_NAME),
