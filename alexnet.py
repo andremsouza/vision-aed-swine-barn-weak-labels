@@ -203,13 +203,13 @@ class AlexNet(pl.LightningModule):
         # Log loss
         self.log("train_loss", loss, on_step=False, on_epoch=True)
         # Calculate metrics
-        self.train_acc(F.sigmoid(outputs), targets)
-        self.train_auroc(F.sigmoid(outputs), targets)
-        self.train_f1(F.sigmoid(outputs), targets)
-        self.train_hamming(F.sigmoid(outputs), targets)
-        self.train_precision(F.sigmoid(outputs), targets)
-        self.train_recall(F.sigmoid(outputs), targets)
-        # self.train_roc(F.sigmoid(outputs), targets)
+        self.train_acc(F.sigmoid(outputs), targets.int())
+        self.train_auroc(F.sigmoid(outputs), targets.int())
+        self.train_f1(F.sigmoid(outputs), targets.int())
+        self.train_hamming(F.sigmoid(outputs), targets.int())
+        self.train_precision(F.sigmoid(outputs), targets.int())
+        self.train_recall(F.sigmoid(outputs), targets.int())
+        # self.train_roc(F.sigmoid(outputs), targets.int())
         # Log metrics
         self.log("train_acc", self.train_acc, on_step=False, on_epoch=True)
         self.log("train_auroc", self.train_auroc, on_step=False, on_epoch=True)
