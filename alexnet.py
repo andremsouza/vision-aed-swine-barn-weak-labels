@@ -32,7 +32,7 @@ from data import AudioDataset
 torch.set_float32_matmul_precision("high")
 RANDOM_SEED: int = 42
 
-LEARNING_RATE: float = 1e-3
+LEARNING_RATE: float = 1
 WEIGHT_DECAY: float = 1e-2
 EXPERIMENT_NAME: str = "alexnet"
 
