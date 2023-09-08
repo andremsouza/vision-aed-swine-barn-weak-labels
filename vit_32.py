@@ -36,7 +36,7 @@ from data import AudioDataset
 # # Constants
 
 # %%
-torch.set_float32_matmul_precision("medium")
+torch.set_float32_matmul_precision("high")
 RANDOM_SEED: int = 42
 
 LEARNING_RATE: float = 1e-3

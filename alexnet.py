@@ -10,7 +10,7 @@ import lightning.pytorch as pl
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
 from torchmetrics.classification import (
     MultilabelAccuracy,
@@ -29,7 +29,7 @@ from data import AudioDataset
 # # Constants
 
 # %%
-torch.set_float32_matmul_precision("medium")
+torch.set_float32_matmul_precision("high")
 RANDOM_SEED: int = 42
 
 LEARNING_RATE: float = 1e-3
