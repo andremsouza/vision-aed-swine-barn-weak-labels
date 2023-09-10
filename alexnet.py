@@ -32,7 +32,7 @@ from data import AudioDataset
 torch.set_float32_matmul_precision("high")
 RANDOM_SEED: int = 42
 
-LEARNING_RATE: float = 1
+LEARNING_RATE: float = 1e-3
 WEIGHT_DECAY: float = 1e-2
 EXPERIMENT_NAME: str = "alexnet"
 
@@ -199,7 +199,7 @@ class AlexNet(pl.LightningModule):
         inputs, targets = batch
         outputs = self(inputs)
         # Compute loss
-        loss = F.binary_cross_entropy(F.sigmoid(outputs), targets)
+        loss = F.binary_cross_entropy_with_logits(outputs, targets)
         # Log loss
         self.log("train_loss", loss, on_step=False, on_epoch=True)
         # Calculate metrics
@@ -238,7 +238,7 @@ class AlexNet(pl.LightningModule):
         inputs, targets = batch
         outputs = self(inputs)
         # calculate loss
-        loss = F.binary_cross_entropy(F.sigmoid(outputs), targets)
+        loss = F.binary_cross_entropy_with_logits(outputs, targets)
         # log loss
         self.log("val_loss", loss, on_step=False, on_epoch=True)
         # calculate metrics
@@ -275,7 +275,7 @@ class AlexNet(pl.LightningModule):
         inputs, targets = batch
         outputs = self(inputs)
         # calculate loss
-        loss = F.binary_cross_entropy(F.sigmoid(outputs), targets)
+        loss = F.binary_cross_entropy_with_logits(outputs, targets)
         # log loss
         self.log("test_loss", loss)
         # calculate metrics
@@ -333,7 +333,7 @@ class AlexNet(pl.LightningModule):
             verbose=True,
         )
         return [optimizer], [
-            {"scheduler": scheduler, "interval": "epoch", "monitor": "train_loss"}
+            {"scheduler": scheduler, "interval": "epoch", "monitor": "val_loss"}
         ]
 
 
@@ -406,7 +406,7 @@ if __name__ == "__main__":
         num_workers=config.NUM_WORKERS,
     )
     early_stopping = pl.callbacks.EarlyStopping(
-        monitor="train_loss", patience=config.EARLY_STOPPING_PATIENCE, mode="min"
+        monitor="val_loss", patience=config.EARLY_STOPPING_PATIENCE, mode="min"
     )
     loggers = [
         pl.loggers.CSVLogger(config.LOG_DIRECTORY, name=EXPERIMENT_NAME),
