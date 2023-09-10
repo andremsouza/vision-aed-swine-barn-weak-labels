@@ -238,7 +238,7 @@ class ViT16(pl.LightningModule):
         images, targets = batch
         outputs = self(images)
         # calculate loss
-        loss = F.binary_cross_entropy(F.sigmoid(outputs), targets)
+        loss = F.binary_cross_entropy_with_logits(outputs, targets)
         # log loss
         self.log("train_loss", loss, on_step=False, on_epoch=True)
         # calculate metrics
@@ -276,7 +276,7 @@ class ViT16(pl.LightningModule):
         images, targets = batch
         outputs = self(images)
         # calculate loss
-        loss = F.binary_cross_entropy(F.sigmoid(outputs), targets)
+        loss = F.binary_cross_entropy_with_logits(outputs, targets)
         # log loss
         self.log("val_loss", loss, on_step=False, on_epoch=True)
         # calculate metrics
@@ -313,7 +313,7 @@ class ViT16(pl.LightningModule):
         images, targets = batch
         outputs = self(images)
         # calculate loss
-        loss = F.binary_cross_entropy(F.sigmoid(outputs), targets)
+        loss = F.binary_cross_entropy_with_logits(outputs, targets)
         # log loss
         self.log("test_loss", loss)
         # calculate metrics
@@ -371,7 +371,7 @@ class ViT16(pl.LightningModule):
             verbose=True,
         )
         return [optimizer], [
-            {"scheduler": scheduler, "interval": "epoch", "monitor": "train_loss"}
+            {"scheduler": scheduler, "interval": "epoch", "monitor": "val_loss"}
         ]
 
 
@@ -443,7 +443,7 @@ if __name__ == "__main__":
         num_workers=config.NUM_WORKERS,
     )
     early_stopping = pl.callbacks.EarlyStopping(
-        monitor="train_loss", patience=config.EARLY_STOPPING_PATIENCE, mode="min"
+        monitor="val_loss", patience=config.EARLY_STOPPING_PATIENCE, mode="min"
     )
     loggers = [
         pl.loggers.CSVLogger(config.LOG_DIRECTORY, name=EXPERIMENT_NAME),
