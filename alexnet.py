@@ -341,7 +341,6 @@ class AlexNet(pl.LightningModule):
 # # Training and Testing
 
 # %%
-# %%
 if __name__ == "__main__":
     print("Starting training.")
     # Split annotations into train and val sets
