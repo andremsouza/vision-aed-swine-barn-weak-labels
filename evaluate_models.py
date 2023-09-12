@@ -71,10 +71,10 @@ with warnings.catch_warnings():
             for learning_rate in models.fully_connected.LEARNING_RATES:
                 # Create model and load state dict if it exists
                 model = models.fully_connected.FullyConnected(
-                    n_layers=n_layers,
-                    m_units=m_units,
-                    n_features=96 * 64,
-                    m_labels=9,
+                    num_layers=n_layers,
+                    num_units=m_units,
+                    num_features=96 * 64,
+                    num_classes=9,
                 ).to(device)
                 # Load state dict if it exists
                 try:

@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # instantiate each model
     alexnet_model = alexnet.AlexNet()
     fully_connected_model = fully_connected.FullyConnected(
-        n_layers=1, m_units=100, n_features=784, m_labels=10
+        num_layers=1, num_units=100, num_features=784, num_classes=10
     )
     inception_v3_model = inception_v3.InceptionV3()
     resnet50_model = resnet50.ResNet50()
