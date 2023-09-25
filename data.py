@@ -433,7 +433,7 @@ def match_patch_annotation(
             continue
         # concatenate the annotation to the data frame
         for col in annotations.columns:
-            patches.loc[index, col] = annotation[col].tail(n=1).values[0]
+            patches.loc[index, col] = float(annotation[col].tail(n=1).values[0])
     if not inplace:
         return patches
     return None
