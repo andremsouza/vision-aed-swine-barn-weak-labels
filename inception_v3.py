@@ -76,6 +76,8 @@ class InceptionV3(pl.LightningModule):
             transform_input (bool): whether to transform the input
         """
         super().__init__()
+        self.num_classes = num_classes
+        self.dropout = dropout
         self.transform_input = transform_input
         # self.Conv2d_1a_3x3 = BasicConv2d(3, 32, kernel_size=3, stride=2)
         # self.Conv2d_2a_3x3 = BasicConv2d(32, 32, kernel_size=3)
