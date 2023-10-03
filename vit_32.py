@@ -195,7 +195,7 @@ class ViT32(pl.LightningModule):
         # get number of input features for the classifier
         in_features = self.model.heads[-1].in_features
         # replace the pre-trained head with a new one
-        self.model.heads["head"] = nn.Linear(in_features, self.num_classes)
+        self.model.heads.head = nn.Linear(in_features, self.num_classes)
         # Init the new classifier head with the same init as the original ViT
         nn.init.zeros_(self.model.heads.head.weight)
         nn.init.zeros_(self.model.heads.head.bias)
