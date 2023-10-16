@@ -226,7 +226,7 @@ class AlexNet(pl.LightningModule):
     def validation_step(
         self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int = 0
     ) -> torch.Tensor:
-        """Validation step. Returns loss.
+        """Run Validation step. Returns loss.
 
         Args:
             batch (torch.Tensor): Batch of images.
@@ -314,6 +314,11 @@ class AlexNet(pl.LightningModule):
         return outputs
 
     def configure_optimizers(self) -> Any:
+        """Configure optimizers and schedulers.
+
+        Returns:
+            Any: Optimizers and schedulers.
+        """
         optimizer = torch.optim.AdamW(
             self.parameters(),
             lr=LEARNING_RATE,

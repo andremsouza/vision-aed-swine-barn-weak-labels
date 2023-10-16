@@ -58,6 +58,7 @@ class ResNet50(pl.LightningModule):
             dropout (float, optional): Dropout rate. Defaults to 0.0.
         """
         super().__init__()
+        self.num_classes = num_classes
         # torchvision.models.resnet.ResNet
         self.model = torchvision.models.resnet.ResNet(
             torchvision.models.resnet.Bottleneck, [3, 4, 6, 3]

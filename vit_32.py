@@ -3,6 +3,7 @@
 # # Imports
 
 # %%
+import math
 import os
 from typing import Any
 
@@ -67,7 +68,7 @@ class ViT32(pl.LightningModule):
                 the model. Defaults to None.
 
         Raises:
-            ValueError: If weights is not None and not one of the supported weight types.
+            ValueError: If weights is not None and not one of the supported weight types
         """
         super().__init__()
         self.num_classes = num_classes
@@ -86,12 +87,12 @@ class ViT32(pl.LightningModule):
             self.transforms = weights.transforms(antialias=True)
         else:
             raise ValueError(f"Unknown weights: {weights}")
-        # Update model heads to match number of classes
-        self._update_heads()
         # Update conv_proj to match input dimensions
         self._update_conv_proj()
         # Update pos_embedding to match input dimensions
         self._update_pos_embedding()
+        # Update model heads to match number of classes
+        self._update_heads()
         # Initialize training metrics
         self.train_acc = MultilabelAccuracy(
             num_labels=self.num_classes, threshold=0.5, average="weighted"
@@ -153,35 +154,62 @@ class ViT32(pl.LightningModule):
         )
         self.test_roc = MultilabelROC(num_labels=self.num_classes)
 
-    def _update_heads(self) -> None:
-        # get number of input features for the classifier
-        in_features = self.model.heads[-1].in_features
-        # replace the pre-trained head with a new one
-        self.model.heads[-1] = nn.Linear(in_features, self.num_classes)
-
     def _update_conv_proj(self) -> None:
+        """Update conv_proj to match input dimensions."""
         self.model.conv_proj = nn.Conv2d(
             in_channels=1,
             out_channels=self.model.hidden_dim,
             kernel_size=self.model.patch_size,
             stride=self.model.patch_size,
         )
+        # Init the patchify stem conv with the same init as the original ViT
+        fan_in: int = (
+            self.model.conv_proj.in_channels
+            * self.model.conv_proj.kernel_size[0]
+            * self.model.conv_proj.kernel_size[1]
+        )
+        nn.init.trunc_normal_(self.model.conv_proj.weight, std=math.sqrt(1 / fan_in))
+        if self.model.conv_proj.bias is not None:
+            nn.init.zeros_(self.model.conv_proj.bias)
 
     def _update_pos_embedding(self) -> None:
-        self.model.encoder.pos_embedding = nn.Parameter(
-            torch.empty(1, 7, self.model.hidden_dim).normal_(std=0.02)
+        """Update pos_embedding to match input dimensions."""
+        # Set sequence length to match number of input patches to the encoder
+        seq_length = (
+            self.image_size[0]
+            // self.model.patch_size
+            * (self.image_size[1] // self.model.patch_size)
         )
+        # Add class token
+        seq_length += 1
+        # Update pos_embedding
+        self.model.encoder.pos_embedding = nn.Parameter(
+            torch.empty(1, seq_length, self.model.hidden_dim).normal_(std=0.02)
+        )
+        # Update model sequence length
+        self.model.seq_length = seq_length
+        self.seq_length = seq_length
+
+    def _update_heads(self) -> None:
+        """Update heads to match number of classes."""
+        # get number of input features for the classifier
+        in_features = self.model.heads[-1].in_features
+        # replace the pre-trained head with a new one
+        self.model.heads.head = nn.Linear(in_features, self.num_classes)
+        # Init the new classifier head with the same init as the original ViT
+        nn.init.zeros_(self.model.heads.head.weight)
+        nn.init.zeros_(self.model.heads.head.bias)
 
     def _process_input(self, x: torch.Tensor) -> torch.Tensor:
         n, c, h, w = x.shape  # pylint: disable=invalid-name
         p = self.model.patch_size  # pylint: disable=invalid-name
         torch._assert(
             h == self.image_size[0],
-            f"Wrong image height! Expected {self.image_size} but got {h}!",
+            f"Wrong image height! Expected {self.image_size[0]} but got {h}!",
         )
         torch._assert(
             w == self.image_size[1],
-            f"Wrong image width! Expected {self.image_size} but got {w}!",
+            f"Wrong image width! Expected {self.image_size[1]} but got {w}!",
         )
         n_h = h // p
         n_w = w // p
@@ -264,7 +292,7 @@ class ViT32(pl.LightningModule):
     def validation_step(
         self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int = 0
     ) -> torch.Tensor:
-        """Validation step. Returns loss.
+        """Run Validation step. Returns loss.
 
         Args:
             batch (torch.Tensor): Batch of images.
@@ -352,6 +380,11 @@ class ViT32(pl.LightningModule):
         return outputs
 
     def configure_optimizers(self) -> Any:
+        """Configure optimizers and schedulers.
+
+        Returns:
+            Any: Optimizers and schedulers.
+        """
         optimizer = torch.optim.AdamW(
             self.parameters(),
             lr=LEARNING_RATE,
