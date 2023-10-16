@@ -695,6 +695,8 @@ if __name__ == "__main__":
     print(f"Pruned dataset: {np.mean(times_pruned)}s")
     # Spectrogram dataset
     print(f"Spectrogram dataset: {np.mean(times_spectrogram)}s")
+    # MFCC dataset
+    print(f"MFCC dataset: {np.mean(times_mfcc)}s")
     # Pruning factor
     print(f"Pruned dataset is {np.mean(times)/np.mean(times_pruned)} times faster.")
     # Spectrogram overhead
