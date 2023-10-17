@@ -53,6 +53,7 @@ class VGG(pl.LightningModule):
             dropout (float): dropout rate
         """
         super().__init__()
+        self.num_classes = num_classes
         self.features = nn.Sequential(
             # conv1
             nn.Conv2d(1, 64, kernel_size=3, padding=1),
