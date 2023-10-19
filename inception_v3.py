@@ -36,7 +36,7 @@ from torchvision.models.inception import (
 
 
 import config
-from data import AudioDataset
+from datasets import SpectrogramDataset
 
 # %% [markdown]
 # # Constants
@@ -414,7 +414,7 @@ if __name__ == "__main__":
         # prepend models directory
         checkpoint_file = os.path.join(config.MODELS_DIRECTORY, checkpoint_file)
         model = InceptionV3.load_from_checkpoint(
-            checkpoint_file, num_classes=config.NUM_CLASSES, dropout=0.5
+            checkpoint_path=checkpoint_file, num_classes=config.NUM_CLASSES, dropout=0.5
         )
     else:
         model = InceptionV3(
@@ -422,17 +422,41 @@ if __name__ == "__main__":
             dropout=0.5,
         )
     # Create datasets
-    train_dataset = AudioDataset(
-        config.TRAIN_ANNOTATION_FILE,
-        config.DATA_DIRECTORY,
-        transform=lambda x: x[None, :, :64],
-        target_transform=lambda x: x[0, :].float(),
+    train_dataset = SpectrogramDataset(
+        annotations_file=config.TRAIN_ANNOTATION_FILE,
+        data_dir=config.DATA_DIRECTORY,
+        num_classes=config.NUM_CLASSES,
+        prune_invalid=True,
+        transform=lambda x: x[None, :, :].transpose(1, 2),
+        # target_transform=lambda x: x[0, :].float(),
     )
-    val_dataset = AudioDataset(
-        config.VAL_ANNOTATION_FILE,
-        config.DATA_DIRECTORY,
-        transform=lambda x: x[None, :, :64],
-        target_transform=lambda x: x[0, :].float(),
+    val_dataset = SpectrogramDataset(
+        annotations_file=config.VAL_ANNOTATION_FILE,
+        data_dir=config.DATA_DIRECTORY,
+        num_classes=config.NUM_CLASSES,
+        prune_invalid=True,
+        transform=lambda x: x[None, :, :].transpose(1, 2),
+        # target_transform=lambda x: x[0, :].float(),
+    )
+    # Calculate mean and std for normalization
+    # Iterate over train dataset
+    train_mean: torch.Tensor = torch.zeros(1)
+    train_std: torch.Tensor = torch.zeros(1)
+    for spectrogram, _ in train_dataset:  # type: ignore
+        # Calculate mean and std
+        train_mean += spectrogram.mean()
+        train_std += spectrogram.std()
+    # Calculate mean and std
+    train_mean /= len(train_dataset)
+    train_std /= len(train_dataset)
+    print(f"Mean: {train_mean}")
+    print(f"Std: {train_std}")
+    # Normalize datasets
+    train_dataset.transform = lambda x: (x[None, :, :].transpose(1, 2) - train_mean) / (
+        train_std * 2
+    )
+    val_dataset.transform = lambda x: (x[None, :, :].transpose(1, 2) - train_mean) / (
+        train_std * 2
     )
     # Create dataloaders
     train_dataloader = torch.utils.data.DataLoader(
@@ -440,12 +464,14 @@ if __name__ == "__main__":
         batch_size=config.BATCH_SIZE,
         shuffle=True,
         num_workers=config.NUM_WORKERS,
+        pin_memory=True,
     )
     val_dataloader = torch.utils.data.DataLoader(
         val_dataset,
         batch_size=config.BATCH_SIZE,
         shuffle=False,
         num_workers=config.NUM_WORKERS,
+        pin_memory=True,
     )
     early_stopping = pl.callbacks.EarlyStopping(
         monitor="val_loss", patience=config.EARLY_STOPPING_PATIENCE, mode="min"

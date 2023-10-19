@@ -325,7 +325,7 @@ if __name__ == "__main__":
     print("Starting training.")
     # Split annotations into train and val sets
     # TODO: Replace annotation files with parametrizeable ones
-    annotation = pd.read_csv("30_09_2020_new.csv")
+    annotation = pd.read_csv(config.ANNOTATION_FILE)
     train_annotation, val_annotation = train_test_split(
         annotation, test_size=0.2, random_state=RANDOM_SEED
     )
