@@ -29,7 +29,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 MODELS_DIRECTORY = "./models/"
 
-BATCH_SIZE = 256
+BATCH_SIZE = 32
 N_MFCCS = 20
 
 PRED_THRESHOLD = 0.5
@@ -41,7 +41,7 @@ FC_BEST_MODELS_ONLY = True
 
 LOG_DIRECTORY = "./logs/"
 
-EARLY_STOPPING_PATIENCE = 64
+EARLY_STOPPING_PATIENCE = 16
 
 NUM_WORKERS = 24
 

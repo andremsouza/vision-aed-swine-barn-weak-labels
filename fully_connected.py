@@ -27,7 +27,7 @@ from torchmetrics.classification import (
 )
 
 import config
-from data import AudioDataset
+from datasets import SpectrogramDataset
 
 # %% [markdown]
 # # Constants
@@ -150,6 +150,64 @@ class FullyConnected(pl.LightningModule):
             num_labels=self.num_classes, threshold=0.5, average="weighted"
         )
         self.test_roc = MultilabelROC(num_labels=self.num_classes)
+        # Initialize per class metrics
+        # Initialize training metrics
+        self.train_acc_per_class = MultilabelAccuracy(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.train_auroc_per_class = MultilabelAUROC(
+            num_labels=self.num_classes, average="none"
+        )
+        self.train_f1_per_class = MultilabelF1Score(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.train_hamming_per_class = MultilabelHammingDistance(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.train_precision_per_class = MultilabelPrecision(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.train_recall_per_class = MultilabelRecall(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        # Initialize validation metrics
+        self.val_acc_per_class = MultilabelAccuracy(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.val_auroc_per_class = MultilabelAUROC(
+            num_labels=self.num_classes, average="none"
+        )
+        self.val_f1_per_class = MultilabelF1Score(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.val_hamming_per_class = MultilabelHammingDistance(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.val_precision_per_class = MultilabelPrecision(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.val_recall_per_class = MultilabelRecall(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        # Initialize test metrics
+        self.test_acc_per_class = MultilabelAccuracy(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.test_auroc_per_class = MultilabelAUROC(
+            num_labels=self.num_classes, average="none"
+        )
+        self.test_f1_per_class = MultilabelF1Score(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.test_hamming_per_class = MultilabelHammingDistance(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.test_precision_per_class = MultilabelPrecision(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
+        self.test_recall_per_class = MultilabelRecall(
+            num_labels=self.num_classes, threshold=0.5, average="none"
+        )
 
     def _create_layers(self) -> nn.Sequential:
         """Create the layers of the neural network.
@@ -213,6 +271,13 @@ class FullyConnected(pl.LightningModule):
         self.train_precision(F.sigmoid(outputs), targets.int())
         self.train_recall(F.sigmoid(outputs), targets.int())
         # self.train_roc(F.sigmoid(outputs), targets.int())
+        # Calculate per class metrics
+        self.train_acc_per_class(F.sigmoid(outputs), targets.int())
+        self.train_auroc_per_class(F.sigmoid(outputs), targets.int())
+        self.train_f1_per_class(F.sigmoid(outputs), targets.int())
+        self.train_hamming_per_class(F.sigmoid(outputs), targets.int())
+        self.train_precision_per_class(F.sigmoid(outputs), targets.int())
+        self.train_recall_per_class(F.sigmoid(outputs), targets.int())
         # Log metrics
         self.log("train_acc", self.train_acc, on_step=False, on_epoch=True)
         self.log("train_auroc", self.train_auroc, on_step=False, on_epoch=True)
@@ -222,7 +287,57 @@ class FullyConnected(pl.LightningModule):
         self.log("train_recall", self.train_recall, on_step=False, on_epoch=True)
         # self.log("train_roc", self.train_roc, on_step=False, on_epoch=True)
         # log learning rate
-        self.log("lr", self.trainer.optimizers[0].param_groups[0]["lr"])
+        self.log(
+            "lr",
+            self.trainer.optimizers[0].param_groups[0]["lr"],
+            on_step=False,
+            on_epoch=True,
+        )
+        # Per class metrics need to be logged separately
+        # Log per class metrics
+        for i in range(self.num_classes):
+            self.log(
+                f"train_acc_{i}",
+                self.train_acc_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="train_acc_per_class",
+            )
+            self.log(
+                f"train_auroc_{i}",
+                self.train_auroc_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="train_auroc_per_class",
+            )
+            self.log(
+                f"train_f1_{i}",
+                self.train_f1_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="train_f1_per_class",
+            )
+            self.log(
+                f"train_hamming_{i}",
+                self.train_hamming_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="train_hamming_per_class",
+            )
+            self.log(
+                f"train_precision_{i}",
+                self.train_precision_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="train_precision_per_class",
+            )
+            self.log(
+                f"train_recall_{i}",
+                self.train_recall_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="train_recall_per_class",
+            )
         # Return loss value
         return loss
 
@@ -252,6 +367,13 @@ class FullyConnected(pl.LightningModule):
         self.val_precision(F.sigmoid(outputs), targets.int())
         self.val_recall(F.sigmoid(outputs), targets.int())
         # self.val_roc(F.sigmoid(outputs), targets.int())
+        # calculate per class metrics
+        self.val_acc_per_class(F.sigmoid(outputs), targets.int())
+        self.val_auroc_per_class(F.sigmoid(outputs), targets.int())
+        self.val_f1_per_class(F.sigmoid(outputs), targets.int())
+        self.val_hamming_per_class(F.sigmoid(outputs), targets.int())
+        self.val_precision_per_class(F.sigmoid(outputs), targets.int())
+        self.val_recall_per_class(F.sigmoid(outputs), targets.int())
         # log metrics
         self.log("val_acc", self.val_acc, on_step=False, on_epoch=True)
         self.log("val_auroc", self.val_auroc, on_step=False, on_epoch=True)
@@ -260,6 +382,51 @@ class FullyConnected(pl.LightningModule):
         self.log("val_precision", self.val_precision, on_step=False, on_epoch=True)
         self.log("val_recall", self.val_recall, on_step=False, on_epoch=True)
         # self.log("val_roc", self.val_roc, on_step=False, on_epoch=True)
+        # Per class metrics need to be logged separately
+        # Log per class metrics
+        for i in range(self.num_classes):
+            self.log(
+                f"val_acc_{i}",
+                self.val_acc_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="val_acc_per_class",
+            )
+            self.log(
+                f"val_auroc_{i}",
+                self.val_auroc_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="val_auroc_per_class",
+            )
+            self.log(
+                f"val_f1_{i}",
+                self.val_f1_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="val_f1_per_class",
+            )
+            self.log(
+                f"val_hamming_{i}",
+                self.val_hamming_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="val_hamming_per_class",
+            )
+            self.log(
+                f"val_precision_{i}",
+                self.val_precision_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="val_precision_per_class",
+            )
+            self.log(
+                f"val_recall_{i}",
+                self.val_recall_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="val_recall_per_class",
+            )
         # return loss
         return loss
 
@@ -289,14 +456,66 @@ class FullyConnected(pl.LightningModule):
         self.test_precision(F.sigmoid(outputs), targets.int())
         self.test_recall(F.sigmoid(outputs), targets.int())
         # self.test_roc(F.sigmoid(outputs), targets.int())
+        # calculate per class metrics
+        self.test_acc_per_class(F.sigmoid(outputs), targets.int())
+        self.test_auroc_per_class(F.sigmoid(outputs), targets.int())
+        self.test_f1_per_class(F.sigmoid(outputs), targets.int())
+        self.test_hamming_per_class(F.sigmoid(outputs), targets.int())
+        self.test_precision_per_class(F.sigmoid(outputs), targets.int())
+        self.test_recall_per_class(F.sigmoid(outputs), targets.int())
         # log metrics
-        self.log("test_acc", self.test_acc)
-        self.log("test_auroc", self.test_auroc)
-        self.log("test_f1", self.test_f1)
-        self.log("test_hamming", self.test_hamming)
-        self.log("test_precision", self.test_precision)
-        self.log("test_recall", self.test_recall)
+        self.log("test_acc", self.test_acc, on_step=False, on_epoch=True)
+        self.log("test_auroc", self.test_auroc, on_step=False, on_epoch=True)
+        self.log("test_f1", self.test_f1, on_step=False, on_epoch=True)
+        self.log("test_hamming", self.test_hamming, on_step=False, on_epoch=True)
+        self.log("test_precision", self.test_precision, on_step=False, on_epoch=True)
+        self.log("test_recall", self.test_recall, on_step=False, on_epoch=True)
         # self.log("test_roc", self.test_roc)
+        # Per class metrics need to be logged separately
+        # Log per class metrics
+        for i in range(self.num_classes):
+            self.log(
+                f"test_acc_{i}",
+                self.test_acc_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="test_acc_per_class",
+            )
+            self.log(
+                f"test_auroc_{i}",
+                self.test_auroc_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="test_auroc_per_class",
+            )
+            self.log(
+                f"test_f1_{i}",
+                self.test_f1_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="test_f1_per_class",
+            )
+            self.log(
+                f"test_hamming_{i}",
+                self.test_hamming_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="test_hamming_per_class",
+            )
+            self.log(
+                f"test_precision_{i}",
+                self.test_precision_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="test_precision_per_class",
+            )
+            self.log(
+                f"test_recall_{i}",
+                self.test_recall_per_class[i],
+                on_step=False,
+                on_epoch=True,
+                metric_attribute="test_recall_per_class",
+            )
         # return loss
         return loss
 
@@ -393,17 +612,39 @@ if __name__ == "__main__":
                     dropout=0.5,
                 )
             # Create datasets
-            train_dataset = AudioDataset(
-                config.TRAIN_ANNOTATION_FILE,
-                config.DATA_DIRECTORY,
-                transform=lambda x: torch.flatten(x[None, :, :64]),
-                target_transform=lambda x: x[0, :].float(),
+            train_dataset = SpectrogramDataset(
+                annotations_file=config.TRAIN_ANNOTATION_FILE,
+                data_dir=config.DATA_DIRECTORY,
+                num_classes=config.NUM_CLASSES,
+                prune_invalid=True,
+                transform=lambda x: torch.flatten(x[None, :, :].transpose(1, 2)),
+                # target_transform=lambda x: x[0, :].float(),
             )
-            val_dataset = AudioDataset(
-                config.VAL_ANNOTATION_FILE,
-                config.DATA_DIRECTORY,
-                transform=lambda x: torch.flatten(x[None, :, :64]),
-                target_transform=lambda x: x[0, :].float(),
+            val_dataset = SpectrogramDataset(
+                annotations_file=config.VAL_ANNOTATION_FILE,
+                data_dir=config.DATA_DIRECTORY,
+                num_classes=config.NUM_CLASSES,
+                prune_invalid=True,
+                transform=lambda x: torch.flatten(x[None, :, :].transpose(1, 2)),
+                # target_transform=lambda x: x[0, :].float(),
+            )
+            # Calculate mean and std for normalization
+            # Iterate over train dataset
+            train_mean: torch.Tensor = torch.zeros(1)
+            train_std: torch.Tensor = torch.zeros(1)
+            for spectrogram, _ in train_dataset:  # type: ignore
+                # Calculate mean and std
+                train_mean += spectrogram.mean()
+                train_std += spectrogram.std()
+            # Calculate mean and std
+            train_mean /= len(train_dataset)
+            train_std /= len(train_dataset)
+            # Normalize datasets
+            train_dataset.transform = lambda x: torch.flatten(
+                (x[None, :, :].transpose(1, 2) - train_mean) / (train_std * 2)
+            )
+            val_dataset.transform = lambda x: torch.flatten(
+                (x[None, :, :].transpose(1, 2) - train_mean) / (train_std * 2)
             )
             # Create dataloaders
             train_dataloader = torch.utils.data.DataLoader(

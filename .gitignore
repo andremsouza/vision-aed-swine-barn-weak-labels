@@ -136,9 +136,10 @@ data/
 
 # models
 models*/
+pretrained_models*/
 
 # output
 *.out
 
 # logs
-logs/
+logs*/
