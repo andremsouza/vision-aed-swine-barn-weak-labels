@@ -592,7 +592,7 @@ if __name__ == "__main__":
                         checkpoint_file = file
                     elif file > checkpoint_file:
                         checkpoint_file = file
-            if checkpoint_file is not None:
+            if checkpoint_file is not None and config.USE_PRETRAINED:
                 # prepend models directory
                 checkpoint_file = os.path.join(config.MODELS_DIRECTORY, checkpoint_file)
                 model = FullyConnected.load_from_checkpoint(

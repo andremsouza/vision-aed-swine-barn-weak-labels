@@ -29,7 +29,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 MODELS_DIRECTORY = "./models/"
 
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 N_MFCCS = 20
 
 PRED_THRESHOLD = 0.5
@@ -44,6 +44,8 @@ LOG_DIRECTORY = "./logs/"
 EARLY_STOPPING_PATIENCE = 16
 
 NUM_WORKERS = 24
+
+USE_PRETRAINED: bool = False
 
 
 # %% [markdown]
