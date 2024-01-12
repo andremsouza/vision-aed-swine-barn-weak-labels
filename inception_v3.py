@@ -11,6 +11,8 @@ import os
 from typing import Any
 
 import lightning.pytorch as pl
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.loggers import CSVLogger, TensorBoardLogger
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import torch
@@ -77,7 +79,7 @@ class InceptionV3(pl.LightningModule):
         """
         super().__init__()
         self.num_classes = num_classes
-        self.dropout = dropout
+        self.dropout_rate = dropout
         self.transform_input = transform_input
         # self.Conv2d_1a_3x3 = BasicConv2d(3, 32, kernel_size=3, stride=2)
         # self.Conv2d_2a_3x3 = BasicConv2d(32, 32, kernel_size=3)
@@ -384,7 +386,7 @@ class InceptionV3(pl.LightningModule):
     def validation_step(
         self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int = 0
     ) -> torch.Tensor:
-        """Validation step. Returns loss.
+        """Perform validation step. Returns loss.
 
         Args:
             batch (torch.Tensor): Batch of images.
@@ -576,6 +578,11 @@ class InceptionV3(pl.LightningModule):
         return outputs
 
     def configure_optimizers(self) -> Any:
+        """Configure optimizers.
+
+        Returns:
+            Any: Optimizers.
+        """
         optimizer = torch.optim.AdamW(
             self.parameters(),
             lr=LEARNING_RATE,
@@ -617,6 +624,10 @@ if __name__ == "__main__":
     train_annotation.to_csv(config.TRAIN_ANNOTATION_FILE, index=False)
     val_annotation.to_csv(config.VAL_ANNOTATION_FILE, index=False)
     # Create model
+    model = InceptionV3(
+        num_classes=config.NUM_CLASSES,
+        dropout=0.5,
+    )
     # Search for checkpoint file in models directory
     # file starts with experiment name
     # file ends with .ckpt
@@ -632,13 +643,8 @@ if __name__ == "__main__":
     if checkpoint_file is not None and config.USE_PRETRAINED:
         # prepend models directory
         checkpoint_file = os.path.join(config.MODELS_DIRECTORY, checkpoint_file)
-        model = InceptionV3.load_from_checkpoint(
+        model.load_from_checkpoint(
             checkpoint_path=checkpoint_file, num_classes=config.NUM_CLASSES, dropout=0.5
-        )
-    else:
-        model = InceptionV3(
-            num_classes=config.NUM_CLASSES,
-            dropout=0.5,
         )
     # Create datasets
     train_dataset = SpectrogramDataset(
@@ -692,14 +698,14 @@ if __name__ == "__main__":
         num_workers=config.NUM_WORKERS,
         pin_memory=True,
     )
-    early_stopping = pl.callbacks.EarlyStopping(
+    early_stopping = EarlyStopping(
         monitor="val_loss", patience=config.EARLY_STOPPING_PATIENCE, mode="min"
     )
     loggers = [
-        pl.loggers.CSVLogger(config.LOG_DIRECTORY, name=EXPERIMENT_NAME),
-        pl.loggers.TensorBoardLogger(config.LOG_DIRECTORY, name=EXPERIMENT_NAME),
+        CSVLogger(config.LOG_DIRECTORY, name=EXPERIMENT_NAME),
+        TensorBoardLogger(config.LOG_DIRECTORY, name=EXPERIMENT_NAME),
     ]
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(
+    checkpoint_callback = ModelCheckpoint(
         dirpath=config.MODELS_DIRECTORY,
         filename=EXPERIMENT_NAME + "-{val_auroc:.2f}-{val_loss:.2f}-{epoch:02d}",
         monitor="val_auroc",
