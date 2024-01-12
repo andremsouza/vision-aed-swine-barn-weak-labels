@@ -22,6 +22,7 @@ Example:
 """
 
 # %%
+import argparse
 from collections import OrderedDict
 from datetime import datetime
 import os
@@ -620,40 +621,86 @@ class MFCCDataset(SpectrogramDataset):
 
 # %%
 # Test dataset
+# %%
+# Test datasets
 if __name__ == "__main__":
-    waveform_dataset = WaveformDataset(
-        annotations_file="30_09_2020_new.csv",
-        data_dir="data/audio/",
+    # Parse arguments
+    argparser: argparse.ArgumentParser = argparse.ArgumentParser(
+        description="Test datasets.",
+    )
+    # Add DATA_DIR argument
+    argparser.add_argument(
+        "--data-dir", type=str, default=os.path.join(".", "data", "audio")
+    )
+    # Add META_DIR argument
+    argparser.add_argument(
+        "--meta-dir", type=str, default=os.path.join(".", "data", "meta")
+    )
+    # Add --f (for jupyter notebooks) argument
+    argparser.add_argument("--f", type=str, default="")
+    # Add VERBOSE argument
+    argparser.add_argument("--verbose", action="store_true")
+    # Parse arguments
+    args: argparse.Namespace = argparser.parse_args()
+    # Set data directory
+    DATA_DIR: str = args.data_dir
+    # Set meta directory
+    META_DIR: str = args.meta_dir
+    # Set verbose
+    VERBOSE: bool = args.verbose
+    # Print argument info
+    print("Arguments:")
+    print(f"DATA_DIR: {DATA_DIR}")
+    print(f"META_DIR: {META_DIR}")
+    print(f"VERBOSE: {VERBOSE}")
+    # Test datasets
+    print("Testing datasets...")
+    # Create datasets
+    waveform_dataset: WaveformDataset = WaveformDataset(
+        annotations_file=os.path.join(META_DIR, "30_09_2020_new.csv"),
+        data_dir=os.path.join(DATA_DIR, "swine"),
         num_classes=9,
         sample_seconds=1.0,
         sample_rate=16000,
     )
-    waveform_dataset_pruned = WaveformDataset(
-        annotations_file="30_09_2020_new.csv",
-        data_dir="data/audio/",
+    waveform_dataset_pruned: WaveformDataset = WaveformDataset(
+        annotations_file=os.path.join(META_DIR, "30_09_2020_new.csv"),
+        data_dir=os.path.join(DATA_DIR, "swine"),
         num_classes=9,
         sample_seconds=1.0,
         sample_rate=16000,
         prune_invalid=True,
     )
-    spectrogram_dataset = SpectrogramDataset(
-        annotations_file="30_09_2020_new.csv",
-        data_dir="data/audio/",
+    spectrogram_dataset: SpectrogramDataset = SpectrogramDataset(
+        annotations_file=os.path.join(META_DIR, "30_09_2020_new.csv"),
+        data_dir=os.path.join(DATA_DIR, "swine"),
         num_classes=9,
         sample_seconds=1.0,
         sample_rate=16000,
         prune_invalid=True,
     )
-    mfcc_dataset = MFCCDataset(
-        annotations_file="30_09_2020_new.csv",
-        data_dir="data/audio/",
+    mfcc_dataset: MFCCDataset = MFCCDataset(
+        annotations_file=os.path.join(META_DIR, "30_09_2020_new.csv"),
+        data_dir=os.path.join(DATA_DIR, "swine"),
         num_classes=9,
         sample_seconds=1.0,
         sample_rate=16000,
         prune_invalid=True,
     )
+    # Print dataset info
+    print("Dataset info:")
+    print(f"waveform_dataset: {waveform_dataset}")
+    print(f"waveform_dataset_pruned: {waveform_dataset_pruned}")
+    print(f"spectrogram_dataset: {spectrogram_dataset}")
+    print(f"mfcc_dataset: {mfcc_dataset}")
+    # Print dataset lengths
+    print("Dataset lengths:")
+    print(f"waveform_dataset: {len(waveform_dataset)}")
+    print(f"waveform_dataset_pruned: {len(waveform_dataset_pruned)}")
+    print(f"spectrogram_dataset: {len(spectrogram_dataset)}")
+    print(f"mfcc_dataset: {len(mfcc_dataset)}")
     # Iterate over datasets
-    NUM_ITERATIONS = 5
+    NUM_ITERATIONS: int = 1
     # Measure times for dataset
     print("Measuring times...")
     times: list = []
@@ -698,15 +745,19 @@ if __name__ == "__main__":
     # MFCC dataset
     print(f"MFCC dataset: {np.mean(times_mfcc)}s")
     # Pruning factor
-    print(f"Pruned dataset is {np.mean(times)/np.mean(times_pruned)} times faster.")
+    print(
+        f"Pruned dataset is {np.mean(times)/np.mean(times_pruned)} "  # type: ignore
+        f"times faster."
+    )
     # Spectrogram overhead
     print(
-        f"Spectrogram dataset is {np.mean(times_pruned)/np.mean(times_spectrogram)} "
+        f"Spectrogram dataset is {np.mean(times_pruned)/np.mean(times_spectrogram)} "  # type: ignore
         f"times faster."
     )
     # MFCC overhead
     print(
-        f"MFCC dataset is {np.mean(times_pruned)/np.mean(times_mfcc)} " f"times faster."
+        f"MFCC dataset is {np.mean(times_pruned)/np.mean(times_mfcc)} "  # type: ignore
+        f"times faster."
     )
     # Measure times for spectrogram dataset
     print("Done.")
