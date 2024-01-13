@@ -11,12 +11,12 @@ import torch
 # %%
 # ANNOTATION_FILE = "/srv/andre/30_09_2020.csv"
 # ANNOTATION_FILE = "./30_09_2020_cropped.csv"
-ANNOTATION_FILE: str = "30_09_2020_new.csv"
+ANNOTATION_FILE: str = "30_09_2020_merged.csv"
 TRAIN_ANNOTATION_FILE = "./train_annotation.csv"
 VAL_ANNOTATION_FILE = "./val_annotation.csv"
 TEST_ANNOTATION_FILE = "./test_annotation.csv"
 
-NUM_CLASSES: int = 9
+NUM_CLASSES: int = 7
 
 ANNOTATION_SECONDS = 5
 
