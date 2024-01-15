@@ -892,7 +892,7 @@ if __name__ == "__main__":
                 model: FullyConnected = FullyConnected(
                     num_layers=n_layers,
                     num_units=m_units,
-                    num_features=input_shape[-1] * input_shape[-2],
+                    num_features=input_shape[-1],
                     num_classes=NUM_CLASSES,
                     dropout=0.5,
                 )
@@ -922,7 +922,7 @@ if __name__ == "__main__":
                             checkpoint_path=checkpoint_file,
                             num_layers=n_layers,
                             num_units=m_units,
-                            num_features=input_shape[-1] * input_shape[-2],
+                            num_features=input_shape[-1],
                             num_classes=NUM_CLASSES,
                             dropout=0.5,
                         )
