@@ -33,13 +33,14 @@ import librosa as lr
 import numpy as np
 import pandas as pd
 import torch
+from torch.utils.data import Dataset
 
 from data import extract_data_from_filename
 
 # %%
 
 
-class WaveformDataset(torch.utils.data.Dataset):
+class WaveformDataset(Dataset):
     """Dataset for audio files with annotations.
 
     Args:

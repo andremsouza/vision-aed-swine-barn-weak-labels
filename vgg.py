@@ -3,15 +3,20 @@
 # # Imports
 
 # %%
+import argparse
+from datetime import datetime
 import os
 from typing import Any
 
 import lightning.pytorch as pl
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.loggers import CSVLogger, TensorBoardLogger
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import torch
 from torch import nn
 import torch.nn.functional as F
+from torch.utils.data import DataLoader
 from torchmetrics.classification import (
     MultilabelAccuracy,
     MultilabelAUROC,
@@ -26,15 +31,223 @@ import config
 from datasets import SpectrogramDataset
 
 # %% [markdown]
-# # Constants
+# # Constants and arguments
 
 # %%
 torch.set_float32_matmul_precision("high")
-RANDOM_SEED: int = 42
 
-LEARNING_RATE: float = 1e-3
-WEIGHT_DECAY: float = 1e-2
-EXPERIMENT_NAME: str = "vgg"
+# Initialize argument parser
+parser = argparse.ArgumentParser()
+# Add arguments
+# Parse annotations file
+parser.add_argument(
+    "--annotations_file",
+    type=str,
+    default=config.ANNOTATION_FILE,
+    help="Path to annotations file",
+)
+# Parse data directory
+parser.add_argument(
+    "--data_dir",
+    type=str,
+    default=config.DATA_DIRECTORY,
+    help="Path to data directory",
+)
+# Parse transformed data directory
+parser.add_argument(
+    "--transformed_dir",
+    type=str,
+    default=config.TRANSFORMED_DATA_DIRECTORY,
+    help="Path to transformed data directory",
+)
+# Parse num classes
+parser.add_argument(
+    "--num_classes",
+    type=int,
+    default=config.NUM_CLASSES,
+    help="Number of classes",
+)
+# Parse sample seconds
+parser.add_argument(
+    "--sample_seconds",
+    type=float,
+    default=config.SAMPLE_SECONDS,
+    help="Sample seconds",
+)
+# Parse sample rate
+parser.add_argument(
+    "--sample_rate",
+    type=int,
+    default=config.SAMPLE_RATE,
+    help="Sample rate",
+)
+# Parse prune invalid
+parser.add_argument(
+    "--prune_invalid",
+    type=bool,
+    default=True,
+    help="Prune invalid",
+)
+# Parse verbose
+parser.add_argument(
+    "--verbose",
+    type=bool,
+    default=True,
+    help="Verbose",
+)
+# Parse batch size
+parser.add_argument(
+    "--batch_size",
+    type=int,
+    default=config.BATCH_SIZE,
+    help="Batch size",
+)
+# Parse epochs
+parser.add_argument(
+    "--max_epochs",
+    type=int,
+    default=config.MAX_EPOCHS,
+    help="Max Epochs",
+)
+# Parse learning rate
+parser.add_argument(
+    "--learning_rate",
+    type=float,
+    default=config.LEARNING_RATE,
+    help="Learning rate",
+)
+# Parse weight decay
+parser.add_argument(
+    "--weight_decay",
+    type=float,
+    default=config.WEIGHT_DECAY,
+    help="Weight decay",
+)
+# Parse patience
+parser.add_argument(
+    "--patience",
+    type=int,
+    default=config.EARLY_STOPPING_PATIENCE,
+    help="Patience",
+)
+# Parse model directory
+parser.add_argument(
+    "--model_dir",
+    type=str,
+    default=config.MODELS_DIRECTORY,
+    help="Model directory",
+)
+# Parse log directory
+parser.add_argument(
+    "--log_dir",
+    type=str,
+    default=config.LOG_DIRECTORY,
+    help="Log directory",
+)
+# Parse model name
+parser.add_argument(
+    "--model_name",
+    type=str,
+    default="vgg",
+    help="Model name",
+)
+# Parse use_pretrained
+parser.add_argument(
+    "--use_pretrained",
+    type=bool,
+    default=False,
+    help="Use pretrained",
+)
+# Parse skip_trained
+parser.add_argument(
+    "--skip_trained",
+    type=bool,
+    default=False,
+    help="Skip trained",
+)
+# Parse --f argument for Jupyter Notebook (ignored by argparse)
+parser.add_argument(
+    "--f",
+    type=str,
+    default="",
+    help="",
+)
+# Parse num_workers (default is number of cpu threads)
+parser.add_argument(
+    "--num_workers",
+    type=int,
+    default=os.cpu_count() if os.cpu_count() is not None else 1,
+    help="Number of workers",
+)
+# Parse seed
+parser.add_argument(
+    "--seed",
+    type=int,
+    default=config.RANDOM_SEED,
+    help="Seed",
+)
+# Parse device
+parser.add_argument(
+    "--device",
+    type=str,
+    default=config.DEVICE,
+    help="Device",
+)
+# Parse pred_threshold
+parser.add_argument(
+    "--pred_threshold",
+    type=float,
+    default=config.PRED_THRESHOLD,
+    help="Prediction threshold",
+)
+# Parse num_bands
+parser.add_argument(
+    "--num_bands",
+    type=int,
+    default=config.NUM_BANDS,
+    help="Number of bands",
+)
+# Parse arguments
+args = parser.parse_args()
+# Print all arguments
+for arg in vars(args):
+    print(f"{arg}: {getattr(args, arg)}")
+# Set argument constants
+ANNOTATIONS_FILE: str = args.annotations_file
+TRAIN_ANNOTATIONS_FILE: str = args.annotations_file.replace(".csv", "_train.csv")
+TEST_ANNOTATIONS_FILE: str = args.annotations_file.replace(".csv", "_test.csv")
+DATA_DIRECTORY: str = args.data_dir
+TRANSFORMED_DATA_DIRECTORY: str = args.transformed_dir
+NUM_CLASSES: int = args.num_classes
+SAMPLE_SECONDS: float = args.sample_seconds
+SAMPLE_RATE: int = args.sample_rate
+PRUNE_INVALID: bool = args.prune_invalid
+VERBOSE: bool = args.verbose
+BATCH_SIZE: int = args.batch_size
+MAX_EPOCHS: int = args.max_epochs
+LEARNING_RATE: float = args.learning_rate
+WEIGHT_DECAY: float = args.weight_decay
+EARLY_STOPPING_PATIENCE: int = args.patience
+MODELS_DIRECTORY: str = args.model_dir
+LOG_DIRECTORY: str = args.log_dir
+MODEL_NAME: str = args.model_name
+USE_PRETRAINED: bool = args.use_pretrained
+SKIP_TRAINED: bool = args.skip_trained
+NUM_WORKERS: int = args.num_workers
+RANDOM_SEED: int = args.seed
+DEVICE: str = args.device
+PRED_THRESHOLD: float = args.pred_threshold
+NUM_BANDS: int = args.num_bands
+# Set experiment prefix
+EXPERIMENT_PREFIX: str = f"{MODEL_NAME}"
+
+# %%
+# Create model directory if not exists
+if not os.path.exists(MODELS_DIRECTORY):
+    os.makedirs(MODELS_DIRECTORY)
+# Create log directory if not exists
+if not os.path.exists(LOG_DIRECTORY):
+    os.makedirs(LOG_DIRECTORY)
 
 # %% [markdown]
 # # Classes
@@ -602,122 +815,152 @@ class VGG(pl.LightningModule):
 
 
 # %% [markdown]
-# # Training and Testing
+# # Main
 
 # %%
 if __name__ == "__main__":
-    print("Starting training.")
-    # Split annotations into train and val sets
-    annotation = pd.read_csv(config.ANNOTATION_FILE)
-    train_annotation, val_annotation = train_test_split(
+    # Load annotations
+    annotation: pd.DataFrame = pd.read_csv(ANNOTATIONS_FILE)
+    # Split data into train and test
+    train_annotation, test_annotation = train_test_split(
         annotation, test_size=0.2, random_state=RANDOM_SEED
     )
     # Sort by Timestamp
-    train_annotation = train_annotation.sort_values(by="Timestamp")
-    val_annotation = val_annotation.sort_values(by="Timestamp")
-    # Save annotation files to csv
-    train_annotation.to_csv(config.TRAIN_ANNOTATION_FILE, index=False)
-    val_annotation.to_csv(config.VAL_ANNOTATION_FILE, index=False)
-    # Create model
-    # Search for checkpoint file in models directory
-    # file starts with experiment name
-    # file ends with .ckpt
-    checkpoint_file: str | None = None
-    for file in os.listdir(config.MODELS_DIRECTORY):
-        if file.startswith(EXPERIMENT_NAME) and file.endswith(".ckpt"):
-            # Checkpoint file found
-            # get file with highest val_auroc
-            if checkpoint_file is None:
-                checkpoint_file = file
-            elif file > checkpoint_file:
-                checkpoint_file = file
-    if checkpoint_file is not None and config.USE_PRETRAINED:
-        # prepend models directory
-        checkpoint_file = os.path.join(config.MODELS_DIRECTORY, checkpoint_file)
-        model = VGG.load_from_checkpoint(
-            checkpoint_path=checkpoint_file, num_classes=config.NUM_CLASSES, dropout=0.5
-        )
-    else:
-        model = VGG(
-            num_classes=config.NUM_CLASSES,
-            dropout=0.5,
-        )
-    # Create datasets
-    train_dataset = SpectrogramDataset(
-        annotations_file=config.TRAIN_ANNOTATION_FILE,
-        data_dir=config.DATA_DIRECTORY,
-        num_classes=config.NUM_CLASSES,
-        prune_invalid=True,
+    train_annotation = train_annotation.sort_values(by=["Timestamp"])
+    test_annotation = test_annotation.sort_values(by=["Timestamp"])
+    # Save to csv
+    train_annotation.to_csv(TRAIN_ANNOTATIONS_FILE, index=False)
+    test_annotation.to_csv(TEST_ANNOTATIONS_FILE, index=False)
+    # Load train and test dataset
+    dataset_train_spec: SpectrogramDataset = SpectrogramDataset(
+        annotations_file=TRAIN_ANNOTATIONS_FILE,
+        data_dir=DATA_DIRECTORY,
+        num_classes=NUM_CLASSES,
+        sample_seconds=SAMPLE_SECONDS,
+        sample_rate=SAMPLE_RATE,
+        prune_invalid=PRUNE_INVALID,  # Set to True to remove invalid files
+        num_mel_filters=NUM_BANDS,
         transform=lambda x: x[None, :, :].transpose(1, 2),
-        # target_transform=lambda x: x[0, :].float(),
     )
-    val_dataset = SpectrogramDataset(
-        annotations_file=config.VAL_ANNOTATION_FILE,
-        data_dir=config.DATA_DIRECTORY,
-        num_classes=config.NUM_CLASSES,
-        prune_invalid=True,
+    dataset_test_spec: SpectrogramDataset = SpectrogramDataset(
+        annotations_file=TEST_ANNOTATIONS_FILE,
+        data_dir=DATA_DIRECTORY,
+        num_classes=NUM_CLASSES,
+        sample_seconds=SAMPLE_SECONDS,
+        sample_rate=SAMPLE_RATE,
+        prune_invalid=PRUNE_INVALID,  # Set to True to remove invalid files
+        num_mel_filters=NUM_BANDS,
         transform=lambda x: x[None, :, :].transpose(1, 2),
-        # target_transform=lambda x: x[0, :].float(),
     )
+    print(f"[{datetime.now()}]: Loaded swine datasets")
     # Calculate mean and std for normalization
     # Iterate over train dataset
-    train_mean: torch.Tensor = torch.zeros(1)
-    train_std: torch.Tensor = torch.zeros(1)
-    for spectrogram, _ in train_dataset:  # type: ignore
-        # Calculate mean and std
-        train_mean += spectrogram.mean()
-        train_std += spectrogram.std()
-    # Calculate mean and std
-    train_mean /= len(train_dataset)
-    train_std /= len(train_dataset)
-    # Normalize datasets
-    train_dataset.transform = lambda x: (x[None, :, :].transpose(1, 2) - train_mean) / (
-        train_std * 2
-    )
-    val_dataset.transform = lambda x: (x[None, :, :].transpose(1, 2) - train_mean) / (
-        train_std * 2
-    )
-    # Create dataloaders
-    train_dataloader = torch.utils.data.DataLoader(
-        train_dataset,
-        batch_size=config.BATCH_SIZE,
+    train_mean_spec: torch.Tensor = torch.zeros(1)
+    train_std_spec: torch.Tensor = torch.zeros(1)
+    for spectrogram, _ in dataset_train_spec:  # type: ignore
+        train_mean_spec += spectrogram.mean()
+        train_std_spec += spectrogram.std()
+    train_mean_spec /= len(dataset_train_spec)
+    train_std_spec /= len(dataset_train_spec)
+    print(f"Train mean (spec): {train_mean_spec}")
+    print(f"Train std (spec): {train_std_spec}")
+    # Normalize datasets (update transform)
+    dataset_train_spec.transform = lambda x: ((x - train_mean_spec) / train_std_spec)[
+        None, :, :
+    ].transpose(1, 2)
+    dataset_test_spec.transform = lambda x: ((x - train_mean_spec) / train_std_spec)[
+        None, :, :
+    ].transpose(1, 2)
+    train_dataloader_spec = DataLoader(
+        dataset_train_spec,
+        batch_size=BATCH_SIZE,
         shuffle=True,
-        num_workers=config.NUM_WORKERS,
+        num_workers=NUM_WORKERS,
         pin_memory=True,
     )
-    val_dataloader = torch.utils.data.DataLoader(
-        val_dataset,
-        batch_size=config.BATCH_SIZE,
+    test_dataloader_spec = DataLoader(
+        dataset_test_spec,
+        batch_size=BATCH_SIZE,
         shuffle=False,
-        num_workers=config.NUM_WORKERS,
+        num_workers=NUM_WORKERS,
         pin_memory=True,
     )
-    early_stopping = pl.callbacks.EarlyStopping(
-        monitor="val_loss", patience=config.EARLY_STOPPING_PATIENCE, mode="min"
-    )
-    loggers = [
-        pl.loggers.CSVLogger(config.LOG_DIRECTORY, name=EXPERIMENT_NAME),
-        pl.loggers.TensorBoardLogger(config.LOG_DIRECTORY, name=EXPERIMENT_NAME),
-    ]
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath=config.MODELS_DIRECTORY,
-        filename=EXPERIMENT_NAME + "-{val_auroc:.2f}-{val_loss:.2f}-{epoch:02d}",
-        monitor="val_auroc",
-        verbose=True,
-        save_top_k=1,
-        save_weights_only=False,
-        mode="max",
-        auto_insert_metric_name=True,
-        every_n_epochs=1,
-        save_on_train_epoch_end=False,
-    )
-    trainer = pl.Trainer(
-        callbacks=[early_stopping, checkpoint_callback],
-        max_epochs=1000,
-        logger=loggers,
-        log_every_n_steps=min(50, len(train_dataloader)),
-    )
-    trainer.fit(model, train_dataloader, val_dataloader)
-    print("Finished training.")
+    print(f"[{datetime.now()}]: Created data loaders")
+    # Create model
+    # Set dataloaders (for generic use)
+    train_dataloaders: list[DataLoader] = [train_dataloader_spec]
+    test_dataloaders: list[DataLoader] = [test_dataloader_spec]
+    for train_dataloader, test_dataloader in zip(train_dataloaders, test_dataloaders):
+        # Get number of input channels from train dataloader
+        input_shape: tuple = next(iter(train_dataloader))[0].shape
+        print(f"Input shape: {input_shape}")
+        # get dataset type (wave/spectrogram/mfcc)
+        dataset_type: str = train_dataloader.dataset.__class__.__name__
+        # transform type to string in ["wave", "spec", "mfcc"]
+        dataset_type = {
+            "WaveformDataset": "wave",
+            "SpectrogramDataset": "spec",
+            "MFCCDataset": "mfcc",
+        }[dataset_type]
+        experiment_name: str = (
+            f"{EXPERIMENT_PREFIX}_"
+            f"{dataset_type}_{NUM_CLASSES}-classes_{NUM_BANDS}-bands"
+        )
+        print(f"[{datetime.now()}]: Training {experiment_name}")
+        model: VGG = VGG(num_classes=NUM_CLASSES, dropout=0.5)
+        if USE_PRETRAINED or SKIP_TRAINED:
+            # Search for checkpoint file in models directory
+            # file starts with experiment name
+            # file ends with .ckpt
+            checkpoint_file: str | None = None
+            for file in os.listdir(MODELS_DIRECTORY):
+                if file.startswith(experiment_name) and file.endswith(".ckpt"):
+                    # Checkpoint file found
+                    # get file with highest val_auroc
+                    if checkpoint_file is None:
+                        checkpoint_file = file
+                    elif file > checkpoint_file:
+                        checkpoint_file = file
+            if checkpoint_file is not None:
+                print(f"[{datetime.now()}]: Found checkpoint {checkpoint_file}")
+                if SKIP_TRAINED:
+                    print(f"[{datetime.now()}]: Skipping {experiment_name}")
+                    continue
+                # Load checkpoint
+                checkpoint_file = os.path.join(MODELS_DIRECTORY, checkpoint_file)
+                model.load_from_checkpoint(
+                    checkpoint_path=checkpoint_file,
+                    num_classes=NUM_CLASSES,
+                    dropout=0.5,
+                )
+        # Train model
+        early_stopping: EarlyStopping = EarlyStopping(
+            monitor="val_loss", patience=EARLY_STOPPING_PATIENCE, mode="min"
+        )
+        loggers: list = [
+            CSVLogger(save_dir=LOG_DIRECTORY, name=experiment_name),
+            TensorBoardLogger(save_dir=LOG_DIRECTORY, name=experiment_name),
+        ]
+        checkpoint_callback: ModelCheckpoint = ModelCheckpoint(
+            dirpath=MODELS_DIRECTORY,
+            filename=experiment_name + "-{val_auroc:.2f}-{val_loss:.2f}-{epoch:02d}",
+            monitor="val_auroc",
+            verbose=True,
+            save_top_k=1,
+            save_weights_only=False,
+            mode="max",
+            auto_insert_metric_name=True,
+            every_n_epochs=1,
+            save_on_train_epoch_end=False,
+        )
+        trainer: pl.Trainer = pl.Trainer(
+            callbacks=[early_stopping, checkpoint_callback],
+            max_epochs=1000,
+            logger=loggers,
+            log_every_n_steps=min(50, len(train_dataloader)),
+        )
+        trainer.fit(model, train_dataloader, test_dataloader)
+        print(f"[{datetime.now()}]: Finished training {experiment_name}")
+print(f"[{datetime.now()}]: Finished training")
 
 # %%

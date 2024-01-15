@@ -9,43 +9,38 @@ import torch
 # # Constants
 
 # %%
+# Data constants
 # ANNOTATION_FILE = "/srv/andre/30_09_2020.csv"
 # ANNOTATION_FILE = "./30_09_2020_cropped.csv"
+# DATA_DIRECTORY = "/srv/andre/gbdi_vm/fmvz/10_SWINE_ICMC/20201013/ALA_E/"
+DATA_DIRECTORY = "./data/audio/"
+MODELS_DIRECTORY = "./models/"
+LOG_DIRECTORY = "./logs/"
+TRANSFORMED_DATA_DIRECTORY = "./data/transformed_audio/"
 ANNOTATION_FILE: str = "30_09_2020_merged.csv"
 TRAIN_ANNOTATION_FILE = "./train_annotation.csv"
 VAL_ANNOTATION_FILE = "./val_annotation.csv"
 TEST_ANNOTATION_FILE = "./test_annotation.csv"
-
-NUM_CLASSES: int = 7
-
-ANNOTATION_SECONDS = 5
-
 FEATURE_FILE = "./features_2020-09-30.csv"
-CHUNK_SIZE = 10**3
-
-# DATA_DIRECTORY = "/srv/andre/gbdi_vm/fmvz/10_SWINE_ICMC/20201013/ALA_E/"
-DATA_DIRECTORY = "./data/audio/"
+# Annotations constants
+NUM_CLASSES: int = 7
+SAMPLE_SECONDS: float = 1.0
+ANNOTATION_SECONDS = 5
+# Utility constants
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
-MODELS_DIRECTORY = "./models/"
-
+CHUNK_SIZE = 10**3
 BATCH_SIZE = 64
 N_MFCCS = 20
-
 PRED_THRESHOLD = 0.5
-
 RANDOM_SEED = 42
-
 SKIP_TRAINED_MODELS = True
 FC_BEST_MODELS_ONLY = True
-
-LOG_DIRECTORY = "./logs/"
-
 EARLY_STOPPING_PATIENCE = 16
-
 NUM_WORKERS = 24
-
 USE_PRETRAINED: bool = False
+MAX_EPOCHS: int = 1000
+FC_N_LAYERS: list[int] = [2, 3, 4, 5, 6]
+FC_M_UNITS: list[int] = [512, 1024, 2048, 4096, 8192]
 
 
 # %% [markdown]
@@ -77,6 +72,7 @@ QUANTIZE_MAX_VAL = +2.0
 # Hyperparameters used in training.
 INIT_STDDEV = 0.01  # Standard deviation used to initialize weights.
 LEARNING_RATE = 1e-4  # Learning rate for the Adam optimizer.
+WEIGHT_DECAY = 1e-2  # L2 regularization weight decay.
 ADAM_EPSILON = 1e-8  # Epsilon for the Adam optimizer.
 
 # Names of ops, tensors, and features.
