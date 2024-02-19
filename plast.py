@@ -712,7 +712,7 @@ class AST(ASTModel, pl.LightningModule):
             Any: Predictions.
         """
         inputs, targets = batch
-        outputs = self(inputs)
+        outputs = F.sigmoid(self(inputs)).round().tolist()
         return outputs
 
     def configure_optimizers(self) -> Any:
@@ -908,6 +908,6 @@ if __name__ == "__main__":
         )
         trainer.fit(model, train_dataloader, test_dataloader)
         print(f"[{datetime.now()}]: Finished training {experiment_name}")
-print(f"[{datetime.now()}]: Finished training")
+    print(f"[{datetime.now()}]: Finished training")
 
 # %%
