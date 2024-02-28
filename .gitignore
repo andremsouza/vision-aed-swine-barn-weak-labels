@@ -134,10 +134,6 @@ data/
 # VSCode
 .vscode/
 
-# models
-models*/
-pretrained_models*/
-
 # output
 *.out
 
