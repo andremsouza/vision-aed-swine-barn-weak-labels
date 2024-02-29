@@ -1,4 +1,5 @@
 """Adaptation of the AlexNet PyTorch model for audio data."""
+
 # %% [markdown]
 # # Imports
 
@@ -888,7 +889,7 @@ if __name__ == "__main__":
                     continue
                 # Load checkpoint
                 checkpoint_file = os.path.join(MODELS_DIRECTORY, checkpoint_file)
-                model.load_from_checkpoint(
+                model = AlexNet.load_from_checkpoint(  # type: ignore
                     checkpoint_path=checkpoint_file,
                     num_classes=NUM_CLASSES,
                     dropout=0.5,

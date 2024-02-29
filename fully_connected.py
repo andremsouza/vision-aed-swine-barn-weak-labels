@@ -3,6 +3,7 @@
 This script is used to define a fully connected neural network with different
 number of layers and units.
 """
+
 # %% [markdown]
 # # Imports
 
@@ -918,7 +919,7 @@ if __name__ == "__main__":
                         checkpoint_file = os.path.join(
                             MODELS_DIRECTORY, checkpoint_file
                         )
-                        model.load_from_checkpoint(
+                        model = FullyConnected.load_from_checkpoint(  # type: ignore
                             checkpoint_path=checkpoint_file,
                             num_layers=n_layers,
                             num_units=m_units,

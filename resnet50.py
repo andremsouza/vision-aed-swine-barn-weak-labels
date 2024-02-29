@@ -3,6 +3,7 @@
 This file contains a partial implementation of the ResNet-50 model
 from https://arxiv.org/abs/1512.03385. It is adapted from PyTorch
 """
+
 # %% [markdown]
 # # Imports
 
@@ -861,7 +862,7 @@ if __name__ == "__main__":
                     continue
                 # Load checkpoint
                 checkpoint_file = os.path.join(MODELS_DIRECTORY, checkpoint_file)
-                model.load_from_checkpoint(
+                model = ResNet50.load_from_checkpoint(  # type: ignore
                     checkpoint_path=checkpoint_file,
                     num_classes=NUM_CLASSES,
                     dropout=0.5,
