@@ -12,7 +12,7 @@
 
 <p align="center"><img src="./fig_aed_paper_workflow.png" alt="Illustration of our AED workflow." width="480"/></p>
 
-This repository contains the official code implementation for the paper "Deep Learning Solutions for Audio Event Detection in a Swine Barn Using Environmental Audio and Weak Labels" by André Moreira Souza, Elaine Parros Machado de Sousa, Livia Lissa Kobayashi, Lucas Andrietta Tassoni, Cesar Augusto Pospissil Garbossa, and Ricardo Vieira Ventura. The paper was submitted to the Applied Intelligence journal.
+This repository contains the official code implementation for the paper "Deep Learning Solutions for Audio Event Detection in a Swine Barn Using Environmental Audio and Weak Labels" by André Moreira Souza, Elaine Parros Machado de Sousa, Livia Lissa Kobayashi, Lucas Andrietta Tassoni, Cesar Augusto Pospissil Garbossa, and Ricardo Vieira Ventura. The paper was accepted by the Applied Intelligence journal.
 
 In this paper, we evaluated deep learning methods for AED on a novel audio dataset from a swine farming environment. To the extent of our knowledge, this is the first study that integrates animal, human, and environmental sounds for AED and auditing purposes. As such, the main contributions of this work are:
 
