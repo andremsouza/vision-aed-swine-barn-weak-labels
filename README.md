@@ -27,12 +27,18 @@ If you find this repository useful for your research, please consider citing our
 
 <!-- TODO: Update Citing BibTeX reference-->
 ```latex
-@article{souza2025aed,
-  title={Deep Learning Solutions for Audio Event Detection in a Swine Barn Using Environmental Audio and Weak Labels},
-  author={Souza, Andr{\'e} Moreira and Sousa, Elaine Parros Machado de and Kobayashi, Livia Lissa and Tassoni, Lucas Andrietta and Garbossa, Cesar Augusto Pospissil and Ventura, Ricardo Vieira},
-  journal={Applied Intelligence},
-  year={2025},
-  publisher={Springer}
+@article{Souza2025,
+  title = {Deep learning solutions for audio event detection in a swine barn using environmental audio and weak labels},
+  volume = {55},
+  ISSN = {1573-7497},
+  url = {http://dx.doi.org/10.1007/s10489-025-06555-6},
+  DOI = {10.1007/s10489-025-06555-6},
+  number = {7},
+  journal = {Applied Intelligence},
+  publisher = {Springer Science and Business Media LLC},
+  author = {Souza,  André Moreira and Kobayashi,  Livia Lissa and Tassoni,  Lucas Andrietta and Garbossa,  Cesar Augusto Pospissil and Ventura,  Ricardo Vieira and Machado de Sousa,  Elaine Parros},
+  year = {2025},
+  month = apr 
 }
 ```
 
