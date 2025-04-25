@@ -23,9 +23,8 @@ In this paper, we evaluated deep learning methods for AED on a novel audio datas
 
 ## Citing
 
-If you find this repository useful for your research, please consider citing our paper (accepted):
+If you find this repository useful for your research, please consider citing our paper:
 
-<!-- TODO: Update Citing BibTeX reference-->
 ```latex
 @article{Souza2025,
   title = {Deep learning solutions for audio event detection in a swine barn using environmental audio and weak labels},
